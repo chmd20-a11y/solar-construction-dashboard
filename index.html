@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>태양광 시공현장 종합 현황 · 시공관리팀</title>
+<style>
+  :root{
+    --bg:#eef1f5;--card:#fff;--ink:#1e2330;--sub:#6b7280;--line:#e3e7ee;--line2:#eef1f5;
+    --amber:#ff8f00;--amber-soft:#fff4e0;--amber-ink:#8a4b00;--dark:#1c2029;
+    --green:#12805c;--green-soft:#e3f6ee;--blue:#2563eb;--blue-soft:#e8efff;--red:#d13b3b;--red-soft:#fdeaea;
+    --radius:14px;--shadow:0 1px 3px rgba(20,25,40,.06),0 6px 18px rgba(20,25,40,.05);
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  header.app{background:var(--dark);color:#fff;padding:0 22px;display:flex;align-items:center;gap:16px;height:60px;position:sticky;top:0;z-index:50}
+  .logo{display:flex;align-items:center;gap:11px}
+  .logo .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ffb347,var(--amber));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+  .logo b{font-size:16px;letter-spacing:-.2px}.logo span{display:block;font-size:11px;color:#aab2c0;font-weight:500;margin-top:1px}
+  header.app .spacer{flex:1}
+  .modepill{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;background:#333a48;padding:7px 12px;border-radius:20px;border:1px solid #3d4557}
+  .modepill .dot{width:8px;height:8px;border-radius:50%;background:var(--amber)}
+  .modepill.cloud .dot{background:#34d399}
+  .whoami{font-size:12.5px;color:#dfe4ec;font-weight:600}
+  .hbtn{background:#333a48;color:#dfe4ec;border:1px solid #3d4557;border-radius:9px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-weight:600}
+  .hbtn:hover{background:#3d4658}.hbtn.ghost{background:transparent}
+  nav.mods{background:var(--card);border-bottom:1px solid var(--line);display:flex;gap:4px;padding:0 16px;position:sticky;top:60px;z-index:40;overflow-x:auto}
+  nav.mods button{background:none;border:none;padding:14px 16px;font-size:14px;font-weight:700;color:var(--sub);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  nav.mods button.active{color:var(--ink);border-bottom-color:var(--amber)}
+  nav.mods button:disabled{color:#c2c8d2;cursor:default}
+  nav.mods button .soon{background:var(--line2);color:#aab2c0;font-size:10px;font-weight:700;border-radius:20px;padding:1px 7px}
+  nav.subs{background:#f7f9fc;border-bottom:1px solid var(--line);display:none;gap:2px;padding:0 20px;position:sticky;top:110px;z-index:39;overflow-x:auto}
+  nav.subs.show{display:flex}
+  nav.subs button{background:none;border:none;padding:11px 13px;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap}
+  nav.subs button.active{color:var(--amber-ink);border-bottom-color:var(--amber)}
+  nav.subs .badge{background:var(--line);color:var(--sub);border-radius:20px;padding:1px 6px;font-size:10.5px;margin-left:4px}
+  main{max-width:1180px;margin:0 auto;padding:22px 16px 90px}
+  .view{display:none}.view.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2.title{font-size:20px;margin:2px 0 3px}.desc{color:var(--sub);font-size:13px;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.card.pad{padding:18px}
+  .row{display:flex;gap:14px;flex-wrap:wrap}.col{flex:1;min-width:0}.muted{color:var(--sub)}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px}
+  .pill.before{background:var(--blue-soft);color:var(--blue)}.pill.during{background:var(--amber-soft);color:var(--amber-ink)}
+  .pill.etc{background:var(--line2);color:var(--sub)}.pill.ok{background:var(--green-soft);color:var(--green)}.pill.warn{background:var(--red-soft);color:var(--red)}
+  .pill.normal{background:var(--green-soft);color:var(--green)}.pill.caution{background:var(--amber-soft);color:var(--amber-ink)}.pill.delay{background:var(--red-soft);color:var(--red)}
+  .pill.sms{background:#eef2ff;color:#4338ca}.pill.lms{background:#f0f6ff;color:#1e6fd8}.pill.auto{background:#ecfdf5;color:#047857}.pill.type{background:#f1f3f8;color:#475569;border:1px solid var(--line)}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:#cfd6e0;background:#fafbfc}
+  .btn.primary{background:var(--amber);border-color:var(--amber);color:#3a2400}.btn.primary:hover{background:#f08600}
+  .btn.dark{background:var(--dark);border-color:var(--dark);color:#fff}.btn.dark:hover{background:#2a303c}
+  .btn.green{background:var(--green);border-color:var(--green);color:#fff}.btn.green:hover{background:#0e6b4d}
+  .btn.sm{padding:6px 10px;font-size:12px}.btn.danger{color:var(--red);border-color:#f2c9c9}.btn.danger:hover{background:var(--red-soft)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}.btn.block{width:100%;justify-content:center}
+  label.f{display:block;font-size:12px;font-weight:700;color:#4b5563;margin:0 0 5px}
+  input.t,select.t,textarea.t{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff}
+  textarea.t{resize:vertical;min-height:90px;line-height:1.6}
+  input.t:focus,select.t:focus,textarea.t:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
+  .field{margin-bottom:14px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:18px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+  .kpi .n{font-size:26px;font-weight:800;letter-spacing:-.5px}.kpi .n small{font-size:14px;font-weight:700;color:var(--sub)}
+  .kpi .l{font-size:12.5px;color:var(--sub);margin-top:2px}.kpi .ico{font-size:20px;float:right}
+  .distrib{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .distrib .d{flex:1;min-width:78px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 8px;text-align:center}
+  .distrib .d b{display:block;font-size:18px;font-weight:800}.distrib .d span{font-size:10.5px;color:var(--sub)}.distrib .d.hot{border-color:var(--amber);background:var(--amber-soft)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .fchip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--sub);cursor:pointer}
+  .fchip.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
+  .scard{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer}
+  .scard.delay{border-left:4px solid var(--red)}.scard.caution{border-left:4px solid var(--amber)}.scard.normal{border-left:4px solid var(--green)}
+  .scard .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.scard .sh h4{margin:0 0 4px;font-size:16px}
+  .scard .meta{font-size:12px;color:var(--sub)}.scard .who{font-size:12.5px}
+  .stepper{display:flex;align-items:flex-start;overflow-x:auto;padding:4px 0 2px}
+  .stp{display:flex;flex-direction:column;align-items:center;min-width:44px;position:relative;flex:1}
+  .stp .c{width:20px;height:20px;border-radius:50%;background:#e3e7ee;color:#9aa3b2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;z-index:1}
+  .stp.done .c{background:var(--green);color:#fff}.stp.cur .c{background:var(--amber);color:#3a2400;box-shadow:0 0 0 4px var(--amber-soft)}
+  .stp .t{font-size:9.5px;margin-top:5px;color:#9aa3b2;white-space:nowrap;text-align:center;line-height:1.25}.stp.done .t{color:var(--sub)}.stp.cur .t{color:var(--amber-ink);font-weight:800}
+  .stp+.stp:before{content:'';position:absolute;top:9px;left:-50%;width:100%;height:3px;background:#e3e7ee;z-index:0}.stp.done:before,.stp.cur:before{background:var(--green)}
+  .pbar{height:9px;background:var(--line2);border-radius:6px;overflow:hidden;flex:1}.pbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),#ffb347)}
+  .scard .foot{display:flex;gap:7px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line2);padding-top:12px}.safe-mini{font-size:11.5px;display:flex;align-items:center;gap:5px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--sub);font-size:11.5px;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.3px}
+  td{padding:11px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
+  .overlay{position:fixed;inset:0;background:rgba(20,25,40,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}.overlay.open{display:flex}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:600px;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal .mh{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:2}.modal .mh h3{margin:0;font-size:16px}
+  .modal .mb{padding:20px}.modal .mf{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+  .x{background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer;line-height:1}
+  .dtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;position:sticky;top:0;background:#fff}
+  .dtabs button{background:none;border:none;padding:9px 13px;font-size:13.5px;font-weight:700;color:var(--sub);cursor:pointer;border-bottom:2.5px solid transparent}
+  .dtabs button.active{color:var(--amber-ink);border-bottom-color:var(--amber)}.dtabs button .c{background:var(--line2);color:var(--sub);border-radius:20px;padding:0 6px;font-size:10.5px;margin-left:3px}
+  .isscard{border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:10px}
+  .isscard.open{border-left:3px solid var(--red)}.isscard.prog{border-left:3px solid var(--amber)}.isscard.done{border-left:3px solid var(--green)}
+  .isscard .ih{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-bottom:6px}
+  .isstep{margin:9px 0 0;padding:9px 11px;border-radius:9px;background:var(--line2);font-size:12.8px;line-height:1.55}.isstep b{font-size:11px;color:var(--sub);display:block;margin-bottom:2px;font-weight:800}
+  .thumbs{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .thumb{width:66px;height:66px;border-radius:9px;object-fit:cover;border:1px solid var(--line);cursor:pointer;display:block}
+  .thumbwrap{position:relative}.thumbwrap .del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:12px;cursor:pointer;line-height:1;padding:0}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;z-index:300;padding:20px}.lightbox.open{display:flex}.lightbox img{max-width:96%;max-height:96%;border-radius:10px}
+  .uploadbtn{display:inline-flex;align-items:center;gap:6px;border:1px dashed #c2c8d2;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;background:#fafbfc}.uploadbtn:hover{border-color:var(--amber);color:var(--amber-ink)}
+  .subhdr{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .preset{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .preset h4{margin:9px 0 6px;font-size:15px}.preset .body{font-size:12.8px;color:#4b5563;white-space:pre-wrap;background:var(--line2);border-radius:9px;padding:10px 12px;margin:4px 0 12px;flex:1;max-height:150px;overflow:auto}
+  .preset .foot{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.preset .sched{font-size:11.5px;color:var(--sub);margin-top:8px}
+  .kv{display:grid;grid-template-columns:90px 1fr;gap:6px 12px;font-size:13px;margin:2px 0 14px}.kv .k{color:var(--sub);font-weight:600}
+  .switch{position:relative;display:inline-block;width:52px;height:29px;flex:0 0 auto}.switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;inset:0;background:#c9ced8;border-radius:30px;transition:.25s}.slider:before{content:"";position:absolute;height:23px;width:23px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked + .slider{background:var(--green)}.switch input:checked + .slider:before{transform:translateX(23px)}
+  .checkline{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;margin-bottom:7px}
+  .note{background:var(--amber-soft);border:1px solid #ffe0ad;color:var(--amber-ink);border-radius:12px;padding:12px 15px;font-size:12.8px;margin-bottom:18px;display:flex;gap:9px;line-height:1.55}.note.blue{background:var(--blue-soft);border-color:#c9dbff;color:#1e40af}.note .i{font-size:16px}
+  .empty{text-align:center;color:var(--sub);padding:40px 20px;font-size:13.5px}
+  .chip{display:inline-block;background:var(--line2);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-size:11.5px;font-weight:600;margin:2px 3px 2px 0;cursor:pointer;color:#4b5563}.chip:hover{background:var(--amber-soft);border-color:#ffe0ad;color:var(--amber-ink)}
+  #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--dark);color:#fff;padding:13px 20px;border-radius:12px;font-size:13.5px;font-weight:600;opacity:0;transition:.3s;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}#toast.ok{background:var(--green)}
+  /* 로그인 */
+  #login{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+  #login.show{display:flex}
+  .loginbox{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:34px 30px;width:100%;max-width:380px}
+  .loginbox .lg{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .loginbox .lg .mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#ffb347,var(--amber));display:flex;align-items:center;justify-content:center;font-size:20px}
+  .loginbox h1{font-size:17px;margin:0}.loginbox p.sub{color:var(--sub);font-size:12.5px;margin:2px 0 22px 48px}
+  @media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}.sgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ── 로그인 화면 (클라우드 모드에서 미로그인 시) ── -->
+<div id="login">
+  <div class="loginbox">
+    <div class="lg"><div class="mark">☀️</div><div><h1>시공현장 종합 현황</h1></div></div>
+    <p class="sub">시공관리팀 로그인</p>
+    <div class="field"><label class="f">이메일</label><input class="t" id="lg-email" type="email" placeholder="you@company.com"></div>
+    <div class="field"><label class="f">비밀번호</label><input class="t" id="lg-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn primary block" onclick="doLogin()">로그인</button>
+    <div id="lg-msg" class="muted" style="font-size:12px;margin-top:12px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ── 앱 ── -->
+<div id="app" style="display:none">
+<header class="app">
+  <div class="logo"><div class="mark">☀️</div><div><b>태양광 시공현장 종합 현황</b><span>시공관리팀 대시보드</span></div></div>
+  <div class="spacer"></div>
+  <div class="modepill" id="modepill"><span class="dot"></span><span id="mode-txt">로컬 모드</span></div>
+  <span class="whoami" id="whoami"></span>
+  <button class="hbtn ghost" onclick="exportData()">⬇ 백업</button>
+  <button class="hbtn ghost" onclick="document.getElementById('importFile').click()">⬆ 복원</button>
+  <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+  <button class="hbtn" id="logout-btn" onclick="doLogout()" style="display:none">로그아웃</button>
+</header>
+
+<nav class="mods" id="mods">
+  <button data-mod="overview" class="active">🏠 현황 개요</button>
+  <button data-mod="safety">🦺 현장 작업자 안전관리</button>
+  <button data-mod="issues">🚩 이슈·점검 <span class="badge" id="b-issues" style="background:var(--line2);border-radius:20px;padding:1px 7px;font-size:11px">0</span></button>
+  <button data-mod="photos" disabled>📸 시공 사진 <span class="soon">준비중</span></button>
+  <button data-mod="quality" disabled>📋 품질·검사 <span class="soon">준비중</span></button>
+</nav>
+
+<nav class="subs" id="subs">
+  <button data-sub="shome" class="active">🛡 안전 홈</button>
+  <button data-sub="presets">📋 안내 프리셋 <span class="badge" id="b-presets">0</span></button>
+  <button data-sub="send">📩 문자 보내기</button>
+  <button data-sub="logs">🧾 발송 로그 <span class="badge" id="b-logs">0</span></button>
+  <button data-sub="settings">⚙️ 설정</button>
+</nav>
+
+<main>
+  <!-- 현황 개요 -->
+  <section class="view active" id="v-overview">
+    <h2 class="title">진행 현장 현황</h2>
+    <p class="desc">진행 중인 전 현장의 공정 단계(계약~준공)·진행률·일정·이슈·확인 상태를 한눈에 봅니다.</p>
+    <div class="kpis">
+      <div class="kpi"><span class="ico">🏗</span><div class="n" id="k-total">0<small>곳</small></div><div class="l">진행 중 현장</div></div>
+      <div class="kpi"><span class="ico">⚡</span><div class="n" id="k-cap">0<small>kW</small></div><div class="l">총 시공 용량</div></div>
+      <div class="kpi"><span class="ico">🚦</span><div class="n" id="k-delay">0<small>곳</small></div><div class="l">지연·주의 현장</div></div>
+      <div class="kpi"><span class="ico">🚩</span><div class="n" id="k-issue">0<small>건</small></div><div class="l">미해결 이슈</div></div>
+      <div class="kpi"><span class="ico">✅</span><div class="n" id="k-ack">0<small>곳</small></div><div class="l">담당자 확인 대기</div></div>
+    </div>
+    <div class="distrib" id="distrib"></div>
+    <div class="filters" id="filters">
+      <span class="muted" style="font-size:12px;font-weight:700">상태</span>
+      <span class="fchip on" data-fk="status" data-fv="all">전체</span><span class="fchip" data-fk="status" data-fv="지연">지연</span><span class="fchip" data-fk="status" data-fv="주의">주의</span><span class="fchip" data-fk="status" data-fv="정상">정상</span>
+      <span style="width:1px;height:20px;background:var(--line);margin:0 4px"></span>
+      <span class="muted" style="font-size:12px;font-weight:700">유형</span>
+      <span class="fchip on" data-fk="type" data-fv="all">전체</span><span class="fchip" data-fk="type" data-fv="지붕">지붕</span><span class="fchip" data-fk="type" data-fv="부지">부지</span><span class="fchip" data-fk="type" data-fv="축사">축사</span>
+      <span style="flex:1"></span>
+      <button class="btn primary sm" onclick="openSite()">+ 현장 추가</button>
+    </div>
+    <div class="sgrid" id="site-cards"></div>
+  </section>
+
+  <!-- 이슈·점검 -->
+  <section class="view" id="v-issues">
+    <h2 class="title">이슈 · 점검 모아보기</h2>
+    <p class="desc">전 현장의 이슈(민원·문제)와 현장 점검 기록을 한 곳에서 봅니다. 행을 누르면 해당 현장 상세로 이동합니다.</p>
+    <div class="kpis">
+      <div class="kpi"><span class="ico">🚩</span><div class="n" id="ki-open">0<small>건</small></div><div class="l">미해결 이슈</div></div>
+      <div class="kpi"><span class="ico">✅</span><div class="n" id="ki-done">0<small>건</small></div><div class="l">처리완료 이슈</div></div>
+      <div class="kpi"><span class="ico">🔍</span><div class="n" id="ki-insp">0<small>건</small></div><div class="l">누적 점검 기록</div></div>
+      <div class="kpi"><span class="ico">⚠️</span><div class="n" id="ki-ng">0<small>건</small></div><div class="l">점검 중 문제발견</div></div>
+    </div>
+    <div class="card pad" style="margin-bottom:18px">
+      <div class="subhdr"><h3 style="margin:0;font-size:15px">🚩 미해결 이슈</h3></div>
+      <div style="overflow:auto"><table><thead><tr><th>발생일</th><th>현장</th><th>구분</th><th>제목</th><th>상태</th><th>조치자</th><th>사진</th></tr></thead><tbody id="iss-rows"></tbody></table></div>
+    </div>
+    <div class="card pad">
+      <div class="subhdr"><h3 style="margin:0;font-size:15px">🔍 최근 현장 점검</h3></div>
+      <div style="overflow:auto"><table><thead><tr><th>점검일</th><th>현장</th><th>확인자</th><th>결과</th><th>소견</th><th>사진</th></tr></thead><tbody id="insp-rows"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- 안전 홈 -->
+  <section class="view" id="v-shome">
+    <h2 class="title">현장 작업자 안전관리</h2>
+    <p class="desc">작업 전/중 안전수칙을 현장 소장에게 문자로 안내합니다. 예약 시각에 자동 발송할 수 있습니다.</p>
+    <div class="card pad" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px">
+          <label class="switch"><input type="checkbox" id="auto-toggle" onchange="toggleAuto()"><span class="slider"></span></label>
+          <div><div style="font-weight:800;font-size:15px">🤖 자동발송 엔진 <span class="pill auto" id="auto-state">꺼짐</span></div><div class="muted" style="font-size:12.5px;margin-top:2px" id="auto-clock">현재 시각 —</div></div>
+        </div>
+        <button class="btn dark sm" onclick="runAutoNow()">🧪 지금 자동발송 테스트</button>
+      </div>
+      <div class="note blue" style="margin:14px 0 0"><span class="i">ℹ️</span><span><b>완전 무인 조건:</b> 자동발송은 이 화면이 켜져 있는 동안 예약 시각에 발송합니다(현재 시뮬레이션). 24시간 무인은 문자나라 자체 예약 / 상시 PC / 클라우드 스케줄러 중 하나가 필요합니다.</span></div>
+    </div>
+    <div class="card pad" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h3 style="margin:0;font-size:15px">⏰ 오늘 보낼 예약 안내</h3><span class="muted" style="font-size:12px" id="today-str"></span></div>
+      <div id="queue-list"></div>
+    </div>
+    <div class="card pad"><h3 style="margin:0 0 12px;font-size:15px">🧾 최근 발송</h3><div id="recent-list"></div></div>
+  </section>
+
+  <!-- 프리셋 -->
+  <section class="view" id="v-presets">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><h2 class="title">안내 프리셋</h2><p class="desc" style="margin:0">종류별 안전수칙 문구를 미리 저장합니다.</p></div><button class="btn primary" onclick="openPreset()">+ 새 프리셋</button></div>
+    <div class="note" style="margin-top:16px"><span class="i">💡</span><span>치환 변수: <span class="chip" onclick="copyVar('{{현장명}}')">{{현장명}}</span><span class="chip" onclick="copyVar('{{소장명}}')">{{소장명}}</span><span class="chip" onclick="copyVar('{{담당자명}}')">{{담당자명}}</span><span class="chip" onclick="copyVar('{{날짜}}')">{{날짜}}</span><span class="chip" onclick="copyVar('{{시간}}')">{{시간}}</span> — 발송 시 현장별로 자동 치환됩니다.</span></div>
+    <div class="grid" id="preset-grid"></div>
+  </section>
+
+  <!-- 문자 보내기 -->
+  <section class="view" id="v-send">
+    <h2 class="title">문자 보내기</h2>
+    <p class="desc">프리셋과 대상을 고르면 문구가 자동 완성됩니다. <span class="pill etc" id="send-mode-tag">연동 전 · 시뮬레이션</span></p>
+    <div class="row">
+      <div class="col card pad" style="max-width:360px">
+        <div class="field"><label class="f">① 안내 프리셋</label><select class="t" id="send-preset" onchange="renderSendPreview()"></select></div>
+        <div class="field"><label class="f">② 받을 현장</label><div style="display:flex;gap:6px;margin-bottom:8px"><button class="btn sm" onclick="selectAllSites(true)">전체선택</button><button class="btn sm" onclick="selectAllSites(false)">전체해제</button></div><div id="send-sites"></div></div>
+      </div>
+      <div class="col" style="min-width:300px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap"><b style="font-size:14px">③ 발송 미리보기 <span class="muted" id="send-count"></span></b><button class="btn green sm" onclick="sendAll()" id="btn-sendall" disabled>📩 전체 문자 발송</button></div>
+        <div id="send-preview"><div class="empty">왼쪽에서 프리셋과 대상을 선택하세요.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 로그 -->
+  <section class="view" id="v-logs">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><h2 class="title">발송 로그</h2><p class="desc" style="margin:0">누가·언제·어떤 안내를 받았는지 기록됩니다.</p></div><button class="btn danger sm" onclick="clearLogs()">로그 비우기</button></div>
+    <div class="card" style="margin-top:16px;overflow:hidden"><table><thead><tr><th style="width:130px">발송 시각</th><th>종류</th><th>안내</th><th>수신자</th><th>번호</th><th>구분</th><th>결과</th></tr></thead><tbody id="log-rows"></tbody></table></div>
+  </section>
+
+  <!-- 설정 -->
+  <section class="view" id="v-settings">
+    <h2 class="title">설정 · 문자나라 연동</h2>
+    <p class="desc">문자나라 API 정보를 입력하면 실제 발송으로 전환됩니다. 비워두면 시뮬레이션으로 동작합니다.</p>
+    <div class="note" style="margin-bottom:18px"><span class="i">🔑</span><span>API키가 없으면 그대로 두세요 — 시뮬레이션으로 동작합니다. 회사 문자나라 계정에서 인증키 발급 후 넣으면 실제 발송으로 연결됩니다.</span></div>
+    <div class="card pad" style="max-width:560px">
+      <div class="field"><label class="f">문자나라 아이디</label><input class="t" id="set-id" placeholder="문자나라 로그인 아이디"></div>
+      <div class="field"><label class="f">API 인증키</label><input class="t" id="set-key" placeholder="발급받은 API 키 (미입력 시 시뮬레이션)"></div>
+      <div class="field"><label class="f">발신번호 <span class="muted" style="font-weight:500">(사전등록된 번호)</span></label><input class="t" id="set-sender" placeholder="예) 0311234567"></div>
+      <div class="field"><label class="f">발송 타입</label><select class="t" id="set-type"><option value="auto">자동 (90byte 이하 SMS, 초과 LMS)</option><option value="lms">항상 LMS(장문)</option></select></div>
+      <div style="display:flex;gap:8px;margin-top:6px"><button class="btn primary" onclick="saveSettings()">저장</button><button class="btn" onclick="testConn()">연동 상태 확인</button></div>
+      <div id="set-status" style="margin-top:14px"></div>
+    </div>
+  </section>
+</main>
+</div>
+
+<!-- 현장 상세 -->
+<div class="overlay" id="detail-modal"><div class="modal">
+  <div class="mh"><h3 id="d-title">현장 상세</h3><button class="x" onclick="closeModal('detail-modal')">×</button></div>
+  <div class="mb" id="d-body"></div>
+  <div class="mf"><button class="btn danger" onclick="deleteSiteFromDetail()" style="margin-right:auto">삭제</button><button class="btn" onclick="editFromDetail()">현장 수정</button><button class="btn green" onclick="safetyFromDetail()">📩 안전안내 보내기</button></div>
+</div></div>
+
+<!-- 현장 추가/수정 -->
+<div class="overlay" id="site-modal"><div class="modal">
+  <div class="mh"><h3 id="site-modal-title">현장 추가</h3><button class="x" onclick="closeModal('site-modal')">×</button></div>
+  <div class="mb">
+    <input type="hidden" id="s-id">
+    <div class="row"><div class="col field" style="flex:2"><label class="f">현장명</label><input class="t" id="s-name" placeholder="예) 김포 물류창고 지붕태양광"></div><div class="col field"><label class="f">사업주 성명</label><input class="t" id="s-owner" placeholder="(주)○○물류 / 홍길동"></div></div>
+    <div class="row"><div class="col field"><label class="f">유형</label><select class="t" id="s-type"><option>지붕</option><option>부지</option><option>축사</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div><div class="col field"><label class="f">위치</label><input class="t" id="s-loc" placeholder="경기 김포"></div></div>
+    <div class="row"><div class="col field"><label class="f">소장 이름</label><input class="t" id="s-mname" placeholder="홍길동"></div><div class="col field"><label class="f">소장 휴대폰 <span class="muted" style="font-weight:500">(문자 대상)</span></label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
+    <div class="row"><div class="col field"><label class="f">담당자 이름</label><input class="t" id="s-cname" placeholder="김담당"></div><div class="col field"><label class="f">담당자 휴대폰</label><input class="t" id="s-cphone" placeholder="010-0000-0000"></div></div>
+    <div class="row"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel" placeholder="한화 Q.PEAK 575W"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty" placeholder="1069"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel" placeholder="HD500"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty" placeholder="2"></div></div>
+    <div class="row"><div class="col field"><label class="f">시공업체</label><input class="t" id="s-builder" placeholder="해피솔라"></div><div class="col field"><label class="f">토목업체</label><input class="t" id="s-civil" placeholder="○○토건"></div></div>
+    <div class="row"><div class="col field"><label class="f">착공일</label><input class="t" id="s-start" type="date"></div><div class="col field"><label class="f">준공 예정일</label><input class="t" id="s-due" type="date"></div></div>
+    <div class="row"><div class="col field"><label class="f">현재 단계</label><select class="t" id="s-stage"></select></div><div class="col field"><label class="f">진행률(%)</label><input class="t" id="s-progress" type="number" min="0" max="100" placeholder="60"></div><div class="col field"><label class="f">상태</label><select class="t" id="s-status"><option>정상</option><option>주의</option><option>지연</option></select></div></div>
+    <div class="field"><label class="f">메모/특이사항</label><textarea class="t" id="s-note" placeholder="예) 자재 추가 입고 예정, 한전 승인 대기 등"></textarea></div>
+    <div class="field"><label class="f">공정표 (이미지 첨부)</label><label class="uploadbtn">📅 공정표 업로드<input type="file" accept="image/*" style="display:none" onchange="onChartPick(event)"></label><div class="thumbs" id="s-chart"></div></div>
+  </div>
+  <div class="mf"><button class="btn" onclick="closeModal('site-modal')">취소</button><button class="btn primary" onclick="saveSite()">저장</button></div>
+</div></div>
+
+<!-- 이슈 -->
+<div class="overlay" id="issue-modal" style="z-index:120"><div class="modal">
+  <div class="mh"><h3 id="issue-modal-title">이슈 등록</h3><button class="x" onclick="closeModal('issue-modal')">×</button></div>
+  <div class="mb">
+    <input type="hidden" id="i-id">
+    <div class="field"><label class="f">현장</label><select class="t" id="i-site-sel"></select></div>
+    <div class="row"><div class="col field"><label class="f">발생일자</label><input class="t" type="date" id="i-date"></div><div class="col field"><label class="f">구분</label><select class="t" id="i-cat"><option>민원</option><option>문제</option><option>안전</option><option>품질</option><option>기타</option></select></div><div class="col field"><label class="f">보고자</label><input class="t" id="i-reporter" placeholder="현장 담당자"></div></div>
+    <div class="field"><label class="f">제목</label><input class="t" id="i-title" placeholder="예) 인접 주민 소음 민원 접수"></div>
+    <div class="field"><label class="f">발생 내용</label><textarea class="t" id="i-content" placeholder="이슈 상황을 구체적으로 기재"></textarea></div>
+    <div class="field"><label class="f">현장 사진</label><label class="uploadbtn">📷 사진 촬영·첨부<input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="onPhotoPick(event,'i')"></label><div class="thumbs" id="i-thumbs"></div></div>
+    <div class="card pad" style="background:var(--line2);border:none;margin-bottom:14px"><label class="f" style="margin-bottom:9px">🧭 상급자 조치</label><div class="row"><div class="col field" style="margin-bottom:10px"><label class="f">조치 지시자</label><input class="t" id="i-actionby" placeholder="현장소장/공사팀장"></div><div class="col field" style="margin-bottom:10px"><label class="f">조치 일자</label><input class="t" type="date" id="i-actiondate"></div></div><div class="field" style="margin-bottom:0"><label class="f">조치·지시 내용</label><textarea class="t" id="i-action" style="min-height:70px" placeholder="상급자가 내린 조치/지시사항"></textarea></div></div>
+    <div class="card pad" style="background:var(--line2);border:none"><label class="f" style="margin-bottom:9px">🏁 최종 처리</label><div class="row"><div class="col field" style="margin-bottom:10px"><label class="f">처리 상태</label><select class="t" id="i-status"><option>접수</option><option>조치중</option><option>처리완료</option></select></div><div class="col field" style="margin-bottom:10px"><label class="f">처리 일자</label><input class="t" type="date" id="i-resolvedate"></div></div><div class="field" style="margin-bottom:0"><label class="f">최종 처리 결과</label><textarea class="t" id="i-resolution" style="min-height:70px" placeholder="이슈가 최종적으로 어떻게 처리되었는지"></textarea></div></div>
+  </div>
+  <div class="mf"><button class="btn danger" id="i-delete" onclick="deleteIssue()" style="margin-right:auto;display:none">삭제</button><button class="btn" onclick="closeModal('issue-modal')">취소</button><button class="btn primary" onclick="saveIssue()">저장</button></div>
+</div></div>
+
+<!-- 점검 -->
+<div class="overlay" id="insp-modal" style="z-index:120"><div class="modal">
+  <div class="mh"><h3 id="insp-modal-title">현장 점검 기록</h3><button class="x" onclick="closeModal('insp-modal')">×</button></div>
+  <div class="mb">
+    <input type="hidden" id="n-id">
+    <div class="field"><label class="f">현장</label><select class="t" id="n-site-sel"></select></div>
+    <div class="row"><div class="col field"><label class="f">점검일</label><input class="t" type="date" id="n-date"></div><div class="col field"><label class="f">확인자</label><input class="t" id="n-inspector" placeholder="현장 확인 담당자"></div><div class="col field"><label class="f">결과</label><select class="t" id="n-result"><option>이상 없음</option><option>문제 발견</option></select></div></div>
+    <div class="field"><label class="f">점검 소견 / 내용</label><textarea class="t" id="n-note" placeholder="현장 확인 결과, 문제가 있으면 어떤 문제인지 기재"></textarea></div>
+    <div class="field"><label class="f">현장 사진</label><label class="uploadbtn">📷 사진 촬영·첨부<input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="onPhotoPick(event,'n')"></label><div class="thumbs" id="n-thumbs"></div></div>
+  </div>
+  <div class="mf"><button class="btn danger" id="n-delete" onclick="deleteInspection()" style="margin-right:auto;display:none">삭제</button><button class="btn" onclick="closeModal('insp-modal')">취소</button><button class="btn primary" onclick="saveInspection()">저장</button></div>
+</div></div>
+
+<!-- 프리셋 -->
+<div class="overlay" id="preset-modal"><div class="modal">
+  <div class="mh"><h3 id="preset-modal-title">새 안내 프리셋</h3><button class="x" onclick="closeModal('preset-modal')">×</button></div>
+  <div class="mb">
+    <input type="hidden" id="p-id">
+    <div class="field"><label class="f">종류</label><select class="t" id="p-category"><option value="작업 전">작업 전</option><option value="작업 중">작업 중</option><option value="기타">기타</option></select></div>
+    <div class="field"><label class="f">제목</label><input class="t" id="p-title" placeholder="예) 작업 전 안전점검(TBM) 안내"></div>
+    <div class="field"><label class="f">안내 문구 <span class="muted" style="font-weight:500">(변수: {{현장명}} {{소장명}} {{담당자명}} {{날짜}} {{시간}})</span></label><textarea class="t" id="p-body" style="min-height:120px"></textarea></div>
+    <div class="card pad" style="background:var(--line2);border:none"><label class="f" style="margin-bottom:9px">⏰ 자동발송 예약</label><label class="checkline" style="margin-bottom:10px"><input type="checkbox" id="p-sched-on"><span>이 안내를 예약합니다</span></label><div class="row"><div class="col"><label class="f">빈도</label><select class="t" id="p-sched-freq"><option value="daily">매일</option><option value="weekday">평일(월~금)</option><option value="weekly">매주</option></select></div><div class="col"><label class="f">시각</label><input class="t" type="time" id="p-sched-time" value="07:00"></div><div class="col" id="p-weekday-wrap" style="display:none"><label class="f">요일</label><select class="t" id="p-sched-weekday"><option value="1">월</option><option value="2">화</option><option value="3">수</option><option value="4">목</option><option value="5">금</option><option value="6">토</option><option value="0">일</option></select></div></div></div>
+  </div>
+  <div class="mf"><button class="btn danger" id="p-delete" onclick="deletePreset()" style="margin-right:auto;display:none">삭제</button><button class="btn" onclick="closeModal('preset-modal')">취소</button><button class="btn primary" onclick="savePreset()">저장</button></div>
+</div></div>
+
+<div class="lightbox" id="lightbox" onclick="closeImg()"><img id="lightbox-img" src="" alt=""></div>
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   태양광 시공현장 종합 현황 — 앱 로직 (로컬/클라우드 자동전환)
+   ═══════════════════════════════════════════════════════════════ */
+const STAGES=['계약','인허가','설계','자재입고','토목·기초','구조물','모듈설치','전기공사','계통연계','준공검사'];
+const MODE = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) ? 'cloud' : 'local';
+let sb=null; if(MODE==='cloud') sb=window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+/* 현재 데이터 (전역) */
+let sites=[], presets=[], logs=[], settings={auto:false,type:'auto',id:'',key:'',sender:''}, profiles=[], me=null;
+let filter={status:'all',type:'all'}, activeMod='overview', activeSub='shome';
+const LS={ sites:'const_sites_v3', presets:'const_presets_v3', logs:'const_logs_v3', settings:'const_settings_v3', marks:'const_marks_v3' };
+let marks={};
+
+/* ── 유틸 ── */
+function uid(){ return 'id'+Math.random().toString(36).slice(2,10); }
+function toast(m,ok){ const t=document.getElementById('toast'); t.textContent=m; t.className='show'+(ok?' ok':''); clearTimeout(t._t); t._t=setTimeout(()=>t.className='',3000); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
+function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function ymd(){ const d=new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
+function nowTime(){ const d=new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function nowStamp(){ const d=new Date(); return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function fmtStamp(iso){ if(!iso) return ''; const d=new Date(iso); return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function catClass(c){ return c==='작업 전'?'before':c==='작업 중'?'during':'etc'; }
+function statusClass(s){ return s==='지연'?'delay':s==='주의'?'caution':'normal'; }
+function esc(s){ return (s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function byteLen(s){ let b=0; for(const ch of (s||'')){ b+=ch.charCodeAt(0)>127?2:1; } return b; }
+function msgType(s){ if(settings.type==='lms') return 'LMS'; return byteLen(s)<=90?'SMS':'LMS'; }
+function isConnected(){ return !!(settings.key&&settings.sender); }
+function dday(due){ if(!due) return null; return Math.ceil((new Date(due)-new Date())/86400000); }
+function ddayTxt(due){ const d=dday(due); if(d===null) return '—'; if(d===0) return 'D-DAY'; return d>0?('D-'+d):('D+'+(-d)); }
+function fmtDate(s){ if(!s) return '미정'; const d=new Date(s); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
+function stageDate(site,i){ if(!site.start||!site.due) return ''; const a=new Date(site.start),b=new Date(site.due); const d=new Date(a.getTime()+(b.getTime()-a.getTime())*((i+1)/STAGES.length)); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
+function getSite(id){ return sites.find(x=>x.id===id); }
+function fill(body,site){ return (body||'').replace(/\{\{현장명\}\}/g,site?.name||'(현장)').replace(/\{\{소장명\}\}/g,site?.mname||'(소장)').replace(/\{\{담당자명\}\}/g,site?.cname||'(담당자)').replace(/\{\{날짜\}\}/g,todayStr()).replace(/\{\{시간\}\}/g,nowTime()); }
+function copyVar(v){ copyText(v); toast('복사됨: '+v,true); }
+function copyText(t){ if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(t).catch(()=>fbCopy(t)); } else fbCopy(t); }
+function fbCopy(t){ const a=document.createElement('textarea'); a.value=t; a.style.position='fixed'; a.style.opacity='0'; document.body.appendChild(a); a.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(a); }
+function resizeCanvas(file){ return new Promise(res=>{ const r=new FileReader(); r.onload=()=>{ const img=new Image(); img.onload=()=>{ const max=1024; let w=img.width,h=img.height; if(w>h&&w>max){h=Math.round(h*max/w);w=max;} else if(h>=w&&h>max){w=Math.round(w*max/h);h=max;} const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); res(c); }; img.onerror=()=>res(null); img.src=r.result; }; r.readAsDataURL(file); }); }
+
+/* ════════════ 데이터 레이어 (로컬 / 클라우드) ════════════ */
+const DB={
+  async loadAll(){
+    if(MODE==='local') return loadLocal();
+    const [S,I,N,P,L,A,PR,SET]=await Promise.all([
+      sb.from('sites').select('*').order('created_at'),
+      sb.from('issues').select('*').order('date',{ascending:false}),
+      sb.from('inspections').select('*').order('date',{ascending:false}),
+      sb.from('presets').select('*').order('created_at'),
+      sb.from('send_logs').select('*').order('created_at',{ascending:false}).limit(400),
+      sb.from('acknowledgments').select('*'),
+      sb.from('profiles').select('*'),
+      sb.from('app_settings').select('*').eq('id',1).maybeSingle(),
+    ]);
+    profiles=PR.data||[];
+    settings=(SET.data&&SET.data.data)||{auto:false,type:'auto',id:'',key:'',sender:''};
+    const by=(arr,k)=>{ const m={}; (arr||[]).forEach(x=>{ (m[x[k]]=m[x[k]]||[]).push(x); }); return m; };
+    const iB=by(I.data,'site_id'), nB=by(N.data,'site_id'), aB=by(A.data,'site_id');
+    sites=(S.data||[]).map(r=>({ ...siteFromRow(r), issues:(iB[r.id]||[]).map(issueFromRow), inspections:(nB[r.id]||[]).map(inspFromRow), _ackRows:aB[r.id]||[] }));
+    presets=(P.data||[]).map(presetFromRow);
+    logs=(L.data||[]).map(l=>({stamp:fmtStamp(l.created_at),category:l.category,title:l.title,name:l.name,site:l.site_name,phone:l.phone,type:l.msg_type,status:l.status}));
+  },
+  async saveSite(o){ if(MODE==='local'){ if(!o.id)o.id=uid(); const i=sites.findIndex(x=>x.id===o.id); if(i>=0)sites[i]={...sites[i],...o}; else sites.push({issues:[],inspections:[],acks:[],permits:[],...o}); persistLocal(); return o.id; }
+    const row=siteToRow(o); if(o.id){ await sb.from('sites').update(row).eq('id',o.id); return o.id; } const {data}=await sb.from('sites').insert(row).select('id').single(); return data&&data.id; },
+  async deleteSite(id){ if(MODE==='local'){ sites=sites.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sites').delete().eq('id',id); },
+  async saveIssue(siteId,o){ if(MODE==='local'){ const s=getSite(siteId); if(!s.issues)s.issues=[]; if(!o.id)o.id=uid(); const i=s.issues.findIndex(x=>x.id===o.id); if(i>=0)s.issues[i]=o; else s.issues.unshift(o); persistLocal(); return; }
+    const row=issueToRow(o); row.site_id=siteId; if(o.id) await sb.from('issues').update(row).eq('id',o.id); else await sb.from('issues').insert(row); },
+  async deleteIssue(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.issues=(s.issues||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('issues').delete().eq('id',id); },
+  async saveInspection(siteId,o){ if(MODE==='local'){ const s=getSite(siteId); if(!s.inspections)s.inspections=[]; if(!o.id)o.id=uid(); const i=s.inspections.findIndex(x=>x.id===o.id); if(i>=0)s.inspections[i]=o; else s.inspections.unshift(o); persistLocal(); return; }
+    const row=inspToRow(o); row.site_id=siteId; if(o.id) await sb.from('inspections').update(row).eq('id',o.id); else await sb.from('inspections').insert(row); },
+  async deleteInspection(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.inspections=(s.inspections||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('inspections').delete().eq('id',id); },
+  async savePreset(o){ if(MODE==='local'){ if(!o.id)o.id=uid(); const i=presets.findIndex(x=>x.id===o.id); if(i>=0)presets[i]=o; else presets.push(o); persistLocal(); return; }
+    const row={category:o.category,title:o.title,body:o.body,sched:o.sched}; if(o.id) await sb.from('presets').update(row).eq('id',o.id); else await sb.from('presets').insert(row); },
+  async deletePreset(id){ if(MODE==='local'){ presets=presets.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('presets').delete().eq('id',id); },
+  async addLog(e){ if(MODE==='local'){ logs.unshift({stamp:nowStamp(),...e}); logs=logs.slice(0,400); persistLocal(); return; }
+    await sb.from('send_logs').insert({category:e.category,title:e.title,name:e.name,site_name:e.site,phone:e.phone,msg_type:e.type,status:e.status,sent_by:me?me.id:null}); },
+  async clearLogs(){ if(MODE==='local'){ logs=[]; persistLocal(); return; } await sb.from('send_logs').delete().neq('id','00000000-0000-0000-0000-000000000000'); },
+  async saveSettingsRemote(){ if(MODE==='local'){ persistLocal(); return; } await sb.from('app_settings').update({data:settings}).eq('id',1); },
+  async uploadPhoto(file){ const c=await resizeCanvas(file); if(!c) return null; if(MODE==='local') return c.toDataURL('image/jpeg',0.6);
+    const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.6)); const path=`${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`; const {error}=await sb.storage.from('photos').upload(path,blob,{contentType:'image/jpeg'}); if(error){ toast('사진 업로드 실패: '+error.message); return null; } return sb.storage.from('photos').getPublicUrl(path).data.publicUrl; },
+  async ackConfirm(siteId,ver){ if(MODE==='cloud'){ await sb.from('acknowledgments').insert({site_id:siteId,user_id:me.id,ack_version:ver}); } },
+  async ackCancel(siteId,ver){ if(MODE==='cloud'){ await sb.from('acknowledgments').delete().eq('site_id',siteId).eq('user_id',me.id).eq('ack_version',ver); } },
+  async ackReset(siteId){ const s=getSite(siteId); if(MODE==='local'){ (s.acks||[]).forEach(a=>a.at=''); persistLocal(); return; } await sb.from('sites').update({ack_version:(s.ackVersion||1)+1}).eq('id',siteId); },
+};
+/* row 매핑 */
+function siteFromRow(r){ return {id:r.id,name:r.name,owner:r.owner,type:r.type,cap:r.cap,loc:r.loc,mname:r.mname,mphone:r.mphone,cname:r.cname,cphone:r.cphone,start:r.start_date,due:r.due_date,stage:r.stage,progress:r.progress,status:r.status,note:r.note,moduleModel:r.module_model,moduleQty:r.module_qty,inverterModel:r.inverter_model,inverterQty:r.inverter_qty,builder:r.builder,civil:r.civil,processChart:r.process_chart,permits:r.permits||[],ackVersion:r.ack_version||1}; }
+function siteToRow(o){ return {name:o.name,owner:o.owner,type:o.type,cap:o.cap,loc:o.loc,mname:o.mname,mphone:o.mphone,cname:o.cname,cphone:o.cphone,start_date:o.start||null,due_date:o.due||null,stage:o.stage,progress:o.progress,status:o.status,note:o.note,module_model:o.moduleModel,module_qty:o.moduleQty,inverter_model:o.inverterModel,inverter_qty:o.inverterQty,builder:o.builder,civil:o.civil,process_chart:o.processChart,permits:o.permits||[]}; }
+function issueFromRow(r){ return {id:r.id,date:r.date,cat:r.cat,title:r.title,content:r.content,reporter:r.reporter,actionby:r.actionby,actiondate:r.actiondate,action:r.action,status:r.status,resolvedate:r.resolvedate,resolution:r.resolution,photos:r.photos||[]}; }
+function issueToRow(o){ return {date:o.date||null,cat:o.cat,title:o.title,content:o.content,reporter:o.reporter,actionby:o.actionby,actiondate:o.actiondate||null,action:o.action,status:o.status,resolvedate:o.resolvedate||null,resolution:o.resolution,photos:o.photos||[]}; }
+function inspFromRow(r){ return {id:r.id,date:r.date,inspector:r.inspector,result:r.result,note:r.note,photos:r.photos||[]}; }
+function inspToRow(o){ return {date:o.date||null,inspector:o.inspector,result:o.result,note:o.note,photos:o.photos||[]}; }
+function presetFromRow(r){ return {id:r.id,category:r.category,title:r.title,body:r.body,sched:r.sched||{on:false,freq:'weekday',time:'07:00',weekday:'1'}}; }
+
+/* ── 로컬 저장 ── */
+function persistLocal(){ try{ localStorage.setItem(LS.sites,JSON.stringify(sites)); localStorage.setItem(LS.presets,JSON.stringify(presets)); localStorage.setItem(LS.logs,JSON.stringify(logs)); localStorage.setItem(LS.settings,JSON.stringify(settings)); localStorage.setItem(LS.marks,JSON.stringify(marks)); }catch(e){ toast('저장 공간 부족: 사진 수를 줄여주세요.'); } }
+function loadLocal(){ const g=(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k))??d; }catch(e){ return d; } };
+  sites=g(LS.sites,null); presets=g(LS.presets,null); logs=g(LS.logs,[]); settings=g(LS.settings,{auto:false,type:'auto',id:'',key:'',sender:''}); marks=g(LS.marks,{});
+  if(!sites||!presets){ seedLocal(); } profiles=[]; }
+function seedLocal(){
+  sites=[
+    {id:uid(),name:'평택 물류센터 지붕태양광',owner:'(주)평택물류',type:'지붕',cap:620,loc:'경기 평택',mname:'윤소장',mphone:'010-5501-2200',cname:'한담당',cphone:'010-5501-3300',start:'2026-06-10',due:'2026-09-18',stage:9,progress:96,status:'정상',note:'이번 주 사용전검사 예정.',moduleModel:'한화 Q.PEAK DUO 580W',moduleQty:1069,inverterModel:'HD500',inverterQty:2,builder:'해피솔라',civil:'대명토건',processChart:'',permits:[],ackVersion:1,issues:[],inspections:[],acks:[]},
+    {id:uid(),name:'화성 공장 지붕태양광',owner:'화성산업(주)',type:'지붕',cap:750,loc:'경기 화성',mname:'최소장',mphone:'010-8888-9999',cname:'정담당',cphone:'010-1010-2020',start:'2026-05-20',due:'2026-09-30',stage:8,progress:85,status:'지연',note:'한전 계통연계 승인 대기.',moduleModel:'한화 Q.PEAK 575W',moduleQty:1304,inverterModel:'선그로우 SG250HX',inverterQty:3,builder:'해피솔라',civil:'정우토목',processChart:'',permits:[],ackVersion:1,
+      issues:[{id:uid(),date:'2026-09-05',cat:'문제',title:'한전 계통연계 승인 지연',content:'계통연계 신청 후 한전 회신 지연으로 준공 일정 차질 우려.',reporter:'정담당',actionby:'공사팀장',actiondate:'2026-09-08',action:'한전 지사 방문·협의, 서류 보완 제출 지시.',status:'조치중',resolvedate:'',resolution:'',photos:[]}],
+      inspections:[{id:uid(),date:'2026-09-10',inspector:'정담당',result:'문제 발견',note:'인버터 기초 앵커 일부 유격 확인. 재시공 필요.',photos:[]}],
+      acks:[{name:'최소장 소장',role:'현장소장',at:'09/12 08:10'},{name:'정담당',role:'현장담당',at:''},{name:'안전관리자',role:'안전관리',at:''}]},
+    {id:uid(),name:'이천 부지 태양광',owner:'이천에너지(주)',type:'부지',cap:990,loc:'경기 이천',mname:'강소장',mphone:'',cname:'백담당',cphone:'010-9090-8080',start:'2026-09-10',due:'2027-01-31',stage:1,progress:10,status:'정상',note:'개발행위허가 접수 단계. 소장 연락처 미등록.',moduleModel:'미정',moduleQty:0,inverterModel:'미정',inverterQty:0,builder:'해피솔라',civil:'미정',processChart:'',
+      permits:[{name:'개발행위허가',status:'진행',date:'2026-09-10'},{name:'전기사업허가(발전사업)',status:'예정',date:''},{name:'사용전검사',status:'예정',date:''}],ackVersion:1,issues:[],inspections:[],
+      acks:[{name:'강소장 소장',role:'현장소장',at:''},{name:'백담당',role:'현장담당',at:''}]},
+  ];
+  presets=[
+    {id:uid(),category:'작업 전',title:'작업 전 안전점검(TBM) 안내',body:'[{{날짜}} 작업 전 안전점검]\n{{현장명}} {{소장명}} 소장님, 안전한 하루 되십시오.\n1) 5분 TBM 실시\n2) 안전모·안전화·안전대 착용\n3) 고소작업 발판·난간 고정\n4) 감전예방 활선 이격 유지',sched:{on:true,freq:'weekday',time:'07:00',weekday:'1'}},
+    {id:uid(),category:'작업 중',title:'고소작업 안전대 체결 안내',body:'[작업 중 안전 리마인드]\n{{현장명}} 2m 이상 고소작업 시 안전대 반드시 체결. 개구부·채광창 접근 금지.',sched:{on:false,freq:'daily',time:'13:00',weekday:'1'}},
+  ];
+  logs=[]; marks={}; persistLocal();
+}
+
+/* 확인(ack) 정규화 */
+function acksFor(s){
+  if(MODE==='local') return (s.acks||[]).map((a,i)=>({name:a.name,role:a.role,at:a.at,idx:i,canToggle:true,self:true}));
+  return (profiles||[]).map(p=>{ const r=(s._ackRows||[]).find(x=>x.user_id===p.id&&x.ack_version===s.ackVersion); return {name:p.name,role:p.role,at:r?fmtStamp(r.acknowledged_at):'',user_id:p.id,canToggle:!!(me&&me.id===p.id),self:!!(me&&me.id===p.id)}; });
+}
+
+/* ════════════ 인증 ════════════ */
+async function doLogin(){
+  const email=document.getElementById('lg-email').value.trim(), pw=document.getElementById('lg-pw').value;
+  const msg=document.getElementById('lg-msg'); msg.textContent='로그인 중…';
+  const {error}=await sb.auth.signInWithPassword({email,password:pw});
+  if(error){ msg.style.color='var(--red)'; msg.textContent='로그인 실패: '+error.message; }
+}
+async function doLogout(){ if(sb) await sb.auth.signOut(); location.reload(); }
+async function ensureProfile(user){
+  const {data}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  if(data) return data;
+  const name=(user.user_metadata&&user.user_metadata.name)||user.email.split('@')[0];
+  await sb.from('profiles').insert({id:user.id,name}); return {id:user.id,name,role:'담당자'};
+}
+
+/* ════════════ 부팅 ════════════ */
+async function boot(){
+  if(MODE==='cloud'){
+    sb.auth.onAuthStateChange((_e,session)=>{ if(session&&!me){ afterLogin(session.user); } });
+    const {data:{session}}=await sb.auth.getSession();
+    if(session) await afterLogin(session.user); else document.getElementById('login').classList.add('show');
+  }else{
+    me={name:'로컬 사용자'};
+    await DB.loadAll(); showApp(); renderAll();
+  }
+  setInterval(autoCheck,15000);
+}
+async function afterLogin(user){
+  const prof=await ensureProfile(user); me={id:user.id,name:prof.name,role:prof.role};
+  document.getElementById('login').classList.remove('show');
+  await DB.loadAll(); showApp(); renderAll(); subscribeRealtime();
+}
+function showApp(){
+  document.getElementById('app').style.display='block';
+  const mp=document.getElementById('modepill'); mp.className='modepill'+(MODE==='cloud'?' cloud':'');
+  document.getElementById('mode-txt').textContent=MODE==='cloud'?'클라우드 모드':'로컬 모드';
+  document.getElementById('whoami').textContent=me?('👤 '+me.name):'';
+  document.getElementById('logout-btn').style.display=MODE==='cloud'?'inline-flex':'none';
+}
+let rtTimer=null;
+function subscribeRealtime(){
+  if(MODE!=='cloud') return;
+  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },600); }).subscribe();
+}
+async function reload(){ await DB.loadAll(); }
+function rerender(){
+  renderConn(); refreshBadges();
+  if(activeMod==='overview') renderOverview();
+  else if(activeMod==='issues') renderIssues();
+  else if(activeMod==='safety'){ if(activeSub==='shome')renderShome(); else if(activeSub==='presets')renderPresets(); else if(activeSub==='send')initSend(); else if(activeSub==='logs')renderLogs(); }
+  if(document.getElementById('detail-modal').classList.contains('open')) renderDetail();
+}
+
+/* ════════════ 탭 ════════════ */
+document.querySelectorAll('#mods button').forEach(b=>{ if(b.disabled) return; b.onclick=()=>{
+  document.querySelectorAll('#mods button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  activeMod=b.dataset.mod; document.getElementById('subs').classList.toggle('show',activeMod==='safety');
+  if(activeMod==='overview'){ showView('v-overview'); renderOverview(); }
+  else if(activeMod==='safety'){ showSub('shome'); }
+  else if(activeMod==='issues'){ showView('v-issues'); renderIssues(); }
+};});
+document.querySelectorAll('#subs button').forEach(b=>{ b.onclick=()=>showSub(b.dataset.sub); });
+function showView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function showSub(sub){ activeSub=sub; document.querySelectorAll('#subs button').forEach(x=>x.classList.toggle('active',x.dataset.sub===sub)); showView('v-'+sub);
+  if(sub==='shome')renderShome(); if(sub==='presets')renderPresets(); if(sub==='send')initSend(); if(sub==='logs')renderLogs(); if(sub==='settings')fillSettings(); }
+function gotoSafety(sub){ document.querySelector('#mods button[data-mod="safety"]').click(); if(sub) setTimeout(()=>showSub(sub),20); }
+
+/* ════════════ 현황 개요 ════════════ */
+document.querySelectorAll('#filters .fchip').forEach(c=>{ c.onclick=()=>{ filter[c.dataset.fk]=c.dataset.fv; document.querySelectorAll(`#filters .fchip[data-fk="${c.dataset.fk}"]`).forEach(x=>x.classList.toggle('on',x===c)); renderCards(); }; });
+function visibleSites(){ return sites.filter(s=>(filter.status==='all'||s.status===filter.status)&&(filter.type==='all'||s.type===filter.type)); }
+function renderOverview(){
+  document.getElementById('k-total').innerHTML=sites.length+'<small>곳</small>';
+  document.getElementById('k-cap').innerHTML=sites.reduce((a,s)=>a+(+s.cap||0),0).toLocaleString()+'<small>kW</small>';
+  document.getElementById('k-delay').innerHTML=sites.filter(s=>s.status!=='정상').length+'<small>곳</small>';
+  const openIss=sites.reduce((a,s)=>a+(s.issues||[]).filter(i=>i.status!=='처리완료').length,0);
+  document.getElementById('k-issue').innerHTML=openIss+'<small>건</small>'; document.getElementById('b-issues').textContent=openIss;
+  document.getElementById('k-ack').innerHTML=sites.filter(s=>acksFor(s).some(a=>!a.at)).length+'<small>곳</small>';
+  const todayPfx=`${pad(new Date().getMonth()+1)}/${pad(new Date().getDate())}`;
+  const cur=STAGES.map((_,i)=>sites.filter(s=>s.stage===i).length);
+  document.getElementById('distrib').innerHTML=STAGES.map((st,i)=>`<div class="d ${cur[i]?'hot':''}"><b>${cur[i]}</b><span>${st}</span></div>`).join('');
+  renderCards();
+}
+function renderCards(){
+  const box=document.getElementById('site-cards'), list=visibleSites();
+  if(!list.length){ box.innerHTML='<div class="empty">조건에 맞는 현장이 없습니다.</div>'; return; }
+  box.innerHTML=list.map(s=>{
+    const stepper=STAGES.map((st,i)=>{ const cls=i<s.stage?'done':i===s.stage?'cur':''; return `<div class="stp ${cls}"><div class="c">${i<s.stage?'✓':i+1}</div><div class="t">${st}</div></div>`; }).join('');
+    const d=dday(s.due), ddCls=s.status==='지연'?'delay':(d!==null&&d<=7?'caution':'etc');
+    const li=(s.inspections||[])[0]; const openN=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
+    const acks=acksFor(s), ackDone=acks.filter(a=>a.at).length, ackTot=acks.length;
+    return `<div class="scard ${statusClass(s.status)}" onclick="openDetail('${s.id}')">
+      <div class="sh"><div><h4>${esc(s.name)}</h4><div class="meta"><span class="pill type">${s.type}</span> ${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)}</div></div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="pill ${statusClass(s.status)}">${s.status}</span>${openN?`<span class="pill warn">🚩 이슈 ${openN}</span>`:''}${ackTot?`<span class="pill ${ackDone<ackTot?'warn':'ok'}">✅ ${ackDone}/${ackTot} 확인</span>`:''}</div></div>
+      <div class="who muted">👷 ${esc(s.mname)} 소장 ${s.mphone?'· '+esc(s.mphone):'<span class="pill warn" style="margin-left:2px">번호없음</span>'}</div>
+      <div class="stepper">${stepper}</div>
+      <div style="display:flex;align-items:center;gap:10px"><div class="pbar"><i style="width:${s.progress}%"></i></div><b style="font-size:13px;min-width:38px;text-align:right">${s.progress}%</b></div>
+      <div class="foot"><span class="pill ${ddCls}">🏁 준공 ${fmtDate(s.due)} · ${ddayTxt(s.due)}</span><span class="safe-mini muted">🔍 ${li?('점검 '+li.date+' '+(li.result==='문제 발견'?'<span style="color:var(--red)">문제발견</span>':'이상없음')):'점검 없음'}</span><span style="flex:1"></span><button class="btn sm" onclick="event.stopPropagation();openDetail('${s.id}')">상세</button><button class="btn sm green" onclick="event.stopPropagation();quickSafety('${s.id}')">📩 안전안내</button></div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════ 현장 상세 ════════════ */
+let detailId=null, detailTab='공정';
+function openDetail(id){ detailId=id; detailTab='공정'; renderDetail(); openModal('detail-modal'); }
+function setDetailTab(t){ detailTab=t; renderDetail(); }
+function renderDetail(){
+  const s=getSite(detailId); if(!s) return;
+  document.getElementById('d-title').textContent=s.name;
+  const issN=(s.issues||[]).length, inspN=(s.inspections||[]).length, openN=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
+  const acks=acksFor(s), ackTot=acks.length, ackDone=acks.filter(a=>a.at).length;
+  const content=detailTab==='공정'?renderDetailProcess(s):detailTab==='이슈'?renderDetailIssues(s):detailTab==='점검'?renderDetailInsp(s):renderDetailAck(s);
+  document.getElementById('d-body').innerHTML=`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><span class="pill type">${s.type}</span><span class="pill ${statusClass(s.status)}">${s.status}</span><span class="muted" style="font-size:12.5px">${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)} · 👷 ${esc(s.mname)} 소장</span></div>
+    <div class="dtabs"><button class="${detailTab==='공정'?'active':''}" onclick="setDetailTab('공정')">📅 공정</button><button class="${detailTab==='이슈'?'active':''}" onclick="setDetailTab('이슈')">🚩 이슈<span class="c">${openN?openN+'/':''}${issN}</span></button><button class="${detailTab==='점검'?'active':''}" onclick="setDetailTab('점검')">🔍 점검<span class="c">${inspN}</span></button><button class="${detailTab==='확인'?'active':''}" onclick="setDetailTab('확인')">✅ 확인<span class="c">${ackDone}/${ackTot}</span></button></div>${content}`;
+}
+function renderDetailProcess(s){
+  const tl=STAGES.map((st,i)=>{ const cls=i<s.stage?'done':i===s.stage?'cur':''; const last=i===STAGES.length-1; return `<li class="${cls}"><div class="mk"><div class="b"></div>${last?'':'<div class="ln"></div>'}</div><div class="ct"><b>${i+1}. ${st}</b> ${i===s.stage?'<span class="pill caution" style="margin-left:4px">진행중</span>':i<s.stage?'<span class="pill normal" style="margin-left:4px">완료</span>':''}<div class="dt">예정 ${stageDate(s,i)||'—'}</div></div></li>`; }).join('');
+  return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="pbar"><i style="width:${s.progress}%"></i></div><b>${s.progress}%</b></div>
+    <div class="kv"><div class="k">사업주</div><div>${esc(s.owner)||'—'}</div><div class="k">용량</div><div>${(+s.cap||0).toLocaleString()} kW</div><div class="k">모듈</div><div>${esc(s.moduleModel)||'—'} ${s.moduleQty?('· '+(+s.moduleQty).toLocaleString()+'장'):''}</div><div class="k">인버터</div><div>${esc(s.inverterModel)||'—'} ${s.inverterQty?('· '+s.inverterQty+'대'):''}</div><div class="k">시공/토목</div><div>${esc(s.builder)||'—'} / ${esc(s.civil)||'—'}</div><div class="k">소장</div><div>${esc(s.mname)} ${s.mphone?'· '+esc(s.mphone):'<span class="pill warn">번호없음</span>'}</div><div class="k">담당자</div><div>${esc(s.cname)||'—'} ${s.cphone?'· '+esc(s.cphone):''}</div><div class="k">착공/준공</div><div>${fmtDate(s.start)} ~ ${fmtDate(s.due)} <span class="pill ${s.status==='지연'?'delay':'etc'}" style="margin-left:4px">${ddayTxt(s.due)}</span></div><div class="k">메모</div><div>${esc(s.note)||'—'}</div></div>
+    ${renderPermits(s)}
+    ${s.processChart?`<h4 style="margin:16px 0 8px;font-size:14px">📅 공정표</h4><img src="${s.processChart}" onclick="openImg(this.src)" style="width:100%;height:auto;max-height:340px;object-fit:contain;background:var(--line2);border:1px solid var(--line);border-radius:10px;cursor:pointer">`:''}
+    <h4 style="margin:16px 0 10px;font-size:14px">🗂 공정 단계 (계약~준공)</h4><ul class="tl" style="list-style:none;margin:0;padding:0">${tl}</ul>`;
+}
+function renderPermits(s){
+  const arr=s.permits||[];
+  const rows=arr.map((p,i)=>{ const cls=p.status==='완료'?'ok':p.status==='진행'?'caution':'etc'; return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="flex:1;font-size:13px">${esc(p.name)}</span><input type="date" value="${p.date||''}" onchange="setPermitDate('${s.id}',${i},this.value)" style="width:148px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px"><span class="pill ${cls}" style="cursor:pointer;min-width:44px;justify-content:center" onclick="cyclePermit('${s.id}',${i})">${p.status}</span><button class="btn sm danger" onclick="removePermit('${s.id}',${i})">×</button></div>`; }).join('');
+  return `<div class="card pad" style="background:#fafbfd;border:1px dashed var(--line);margin-top:6px"><div class="subhdr" style="margin-bottom:9px"><b style="font-size:13.5px">🧾 인허가 상세</b><span class="muted" style="font-size:11px">상태 클릭 → 예정·진행·완료</span></div>${rows||'<div class="muted" style="font-size:12.5px;margin-bottom:8px">등록된 인허가 항목이 없습니다.</div>'}<div style="display:flex;gap:6px;margin-top:8px"><input class="t" id="permit-new-${s.id}" placeholder="항목명 (예: 개발행위허가)" style="flex:1;padding:7px 10px"><button class="btn sm primary" onclick="addPermit('${s.id}')">+ 추가</button></div></div>`;
+}
+async function cyclePermit(id,i){ const s=getSite(id); const o=['예정','진행','완료']; const p=s.permits[i]; p.status=o[(o.indexOf(p.status)+1)%3]; if(p.status==='완료'&&!p.date)p.date=todayISO(); await DB.saveSite(s); await reload(); renderDetail(); }
+async function setPermitDate(id,i,v){ const s=getSite(id); s.permits[i].date=v; await DB.saveSite(s); }
+async function addPermit(id){ const s=getSite(id); const el=document.getElementById('permit-new-'+id); const name=(el&&el.value||'').trim(); if(!name){ toast('항목명을 입력하세요'); return; } if(!s.permits)s.permits=[]; s.permits.push({name,status:'예정',date:''}); await DB.saveSite(s); await reload(); renderDetail(); }
+async function removePermit(id,i){ const s=getSite(id); s.permits.splice(i,1); await DB.saveSite(s); await reload(); renderDetail(); }
+
+function renderDetailIssues(s){ const arr=s.issues||[]; const list=arr.length?arr.map(i=>issueCard(s,i)).join(''):'<div class="empty">등록된 이슈가 없습니다.</div>'; return `<div class="subhdr"><span class="muted" style="font-size:12.5px">발생 → 상급자 조치 → 최종 처리</span><button class="btn primary sm" onclick="openIssue('${s.id}')">+ 새 이슈</button></div>${list}`; }
+function issueCard(s,i){ const cls=i.status==='처리완료'?'done':i.status==='조치중'?'prog':'open'; const st=i.status==='처리완료'?'ok':i.status==='조치중'?'caution':'warn';
+  return `<div class="isscard ${cls}"><div class="ih"><div><span class="pill during">${i.cat}</span> <b style="font-size:14px">${esc(i.title)}</b><div class="muted" style="font-size:11.5px;margin-top:3px">발생 ${i.date||'—'} · 보고 ${esc(i.reporter)||'—'}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="pill ${st}">${i.status}</span><button class="btn sm" onclick="openIssue('${s.id}','${i.id}')">수정</button></div></div><div style="font-size:13px;white-space:pre-wrap">${esc(i.content)}</div>${viewThumbs(i.photos)}${i.action?`<div class="isstep"><b>🧭 상급자 조치 · ${esc(i.actionby)||'-'} · ${i.actiondate||''}</b>${esc(i.action)}</div>`:''}${i.resolution?`<div class="isstep" style="background:var(--green-soft)"><b>🏁 최종 처리 · ${i.resolvedate||''}</b>${esc(i.resolution)}</div>`:''}</div>`; }
+function renderDetailInsp(s){ const arr=s.inspections||[]; const list=arr.length?arr.map(n=>inspCard(s,n)).join(''):'<div class="empty">현장 점검 기록이 없습니다.</div>'; return `<div class="subhdr"><span class="muted" style="font-size:12.5px">담당자가 현장을 직접 확인한 결과</span><button class="btn primary sm" onclick="openInspection('${s.id}')">+ 새 점검</button></div>${list}`; }
+function inspCard(s,n){ const ng=n.result==='문제 발견'; return `<div class="isscard ${ng?'open':'done'}"><div class="ih"><div><b style="font-size:14px">🔍 ${n.date||'—'} 점검</b><div class="muted" style="font-size:11.5px;margin-top:3px">확인자 ${esc(n.inspector)||'—'}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="pill ${ng?'warn':'ok'}">${n.result}</span><button class="btn sm" onclick="openInspection('${s.id}','${n.id}')">수정</button></div></div>${n.note?`<div style="font-size:13px;white-space:pre-wrap">${esc(n.note)}</div>`:''}${viewThumbs(n.photos)}</div>`; }
+function renderDetailAck(s){
+  const acks=acksFor(s); const cur=`${s.status} · ${STAGES[s.stage]||''} 단계 진행 ${s.progress}%`; const open=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
+  const allOk=acks.length&&acks.every(a=>a.at);
+  const rows=acks.map((a,i)=>{ const btn=a.canToggle?(a.at?`<button class="btn sm" onclick="ackToggle('${s.id}',${i})">취소</button>`:`<button class="btn sm green" onclick="ackToggle('${s.id}',${i})">확인</button>`):(MODE==='cloud'&&!a.at?'<span class="muted" style="font-size:11px">본인만 확인</span>':'');
+    return `<div class="checkline" style="justify-content:space-between"><span><b>${esc(a.name)}</b> ${a.role?`<span class="muted" style="font-size:11.5px">${esc(a.role)}</span>`:''}${a.self?' <span class="pill etc">나</span>':''}</span><span style="display:flex;gap:7px;align-items:center">${a.at?`<span class="pill ok">✅ ${a.at} 확인</span>`:'<span class="pill warn">미확인</span>'}${btn}${MODE==='local'?`<button class="btn sm danger" onclick="ackRemove('${s.id}',${i})">×</button>`:''}</span></div>`; }).join('');
+  return `<div class="note ${allOk?'blue':''}" style="margin-bottom:14px"><span class="i">${allOk?'✅':'📌'}</span><span><b>확인 대상 현황:</b> ${cur}${open?` · <span style="color:var(--red)">미해결 이슈 ${open}건</span>`:''}<br>관련 담당자들이 위 현황을 <b>인지했음을 의무적으로 확인</b>합니다.${MODE==='cloud'?' (로그인 본인 계정으로만 확인 → 기록에 남음)':''}</span></div>
+    <div class="subhdr"><span class="muted" style="font-size:12.5px">확인 ${acks.filter(a=>a.at).length}/${acks.length}</span><button class="btn sm" onclick="ackReset('${s.id}')">🔄 상황 변경 · 전체 재확인 요청</button></div>
+    ${rows||'<div class="empty">지정된 담당자가 없습니다.</div>'}
+    ${MODE==='local'?`<div style="display:flex;gap:6px;margin-top:10px"><input class="t" id="ack-new-${s.id}" placeholder="담당자 이름 추가" style="flex:1;padding:7px 10px"><button class="btn sm primary" onclick="ackAdd('${s.id}')">+ 담당자</button></div>`:`<div class="muted" style="font-size:11.5px;margin-top:10px">클라우드 모드: 확인 대상 = 로그인 팀원 계정. Supabase에서 계정을 추가하세요.</div>`}`;
+}
+async function ackToggle(id,i){ const s=getSite(id); const a=acksFor(s)[i];
+  if(MODE==='local'){ s.acks[i].at=s.acks[i].at?'':nowStamp(); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); return; }
+  if(!a.canToggle){ toast('본인 계정으로만 확인할 수 있습니다'); return; }
+  if(a.at) await DB.ackCancel(id,s.ackVersion); else await DB.ackConfirm(id,s.ackVersion);
+  await reload(); renderDetail(); renderOverview();
+}
+async function ackReset(id){ await DB.ackReset(id); await reload(); renderDetail(); renderOverview(); toast('전체 재확인을 요청했습니다'); }
+async function ackAdd(id){ const s=getSite(id); const el=document.getElementById('ack-new-'+id); const name=(el&&el.value||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } if(!s.acks)s.acks=[]; s.acks.push({name,role:'',at:''}); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); }
+async function ackRemove(id,i){ const s=getSite(id); s.acks.splice(i,1); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); }
+function editFromDetail(){ closeModal('detail-modal'); openSite(detailId); }
+function safetyFromDetail(){ const id=detailId; closeModal('detail-modal'); quickSafety(id); }
+async function deleteSiteFromDetail(){ if(confirm('이 현장을 삭제할까요?')){ await DB.deleteSite(detailId); await reload(); closeModal('detail-modal'); renderOverview(); toast('현장을 삭제했습니다'); } }
+
+/* ════════════ 사진 / 라이트박스 ════════════ */
+let iPhotos=[], nPhotos=[], sChart='';
+async function onPhotoPick(e,which){ const files=[...e.target.files]; toast('사진 처리 중…'); for(const f of files){ if(!f.type.startsWith('image/'))continue; const url=await DB.uploadPhoto(f); if(url)(which==='i'?iPhotos:nPhotos).push(url); } e.target.value=''; renderThumbs(which); }
+function renderThumbs(which){ const arr=which==='i'?iPhotos:nPhotos; document.getElementById(which+'-thumbs').innerHTML=arr.map((d,i)=>`<div class="thumbwrap"><img class="thumb" src="${d}" onclick="openImg(this.src)"><button class="del" onclick="removePhoto('${which}',${i})">×</button></div>`).join(''); }
+function removePhoto(which,i){ (which==='i'?iPhotos:nPhotos).splice(i,1); renderThumbs(which); }
+function viewThumbs(arr){ return (arr&&arr.length)?`<div class="thumbs">${arr.map(d=>`<img class="thumb" src="${d}" onclick="openImg(this.src)">`).join('')}</div>`:''; }
+async function onChartPick(e){ const f=e.target.files[0]; if(f&&f.type.startsWith('image/')){ toast('공정표 처리 중…'); const url=await DB.uploadPhoto(f); if(url){ sChart=url; renderChartThumb(); } } e.target.value=''; }
+function renderChartThumb(){ const b=document.getElementById('s-chart'); if(b) b.innerHTML=sChart?`<div class="thumbwrap"><img class="thumb" src="${sChart}" onclick="openImg(this.src)"><button class="del" onclick="clearChart()">×</button></div>`:''; }
+function clearChart(){ sChart=''; renderChartThumb(); }
+function openImg(src){ document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').classList.add('open'); }
+function closeImg(){ document.getElementById('lightbox').classList.remove('open'); }
+
+/* ════════════ 현장 CRUD ════════════ */
+function fillStageSelect(){ document.getElementById('s-stage').innerHTML=STAGES.map((st,i)=>`<option value="${i}">${i+1}. ${st}</option>`).join(''); }
+function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
+  document.getElementById('site-modal-title').textContent=s?'현장 수정':'현장 추가';
+  const v=(k,d)=>document.getElementById(k).value=(s?(s[d==null?k:d]??''):''); // not used
+  document.getElementById('s-id').value=s?s.id:'';
+  const set=(id2,val)=>document.getElementById(id2).value=val;
+  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'지붕'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):'');
+  set('s-mname',s?(s.mname||''):''); set('s-mphone',s?(s.mphone||''):''); set('s-cname',s?(s.cname||''):''); set('s-cphone',s?(s.cphone||''):'');
+  set('s-mmodel',s?(s.moduleModel||''):''); set('s-mqty',s?(s.moduleQty||''):''); set('s-imodel',s?(s.inverterModel||''):''); set('s-iqty',s?(s.inverterQty||''):'');
+  set('s-builder',s?(s.builder||''):''); set('s-civil',s?(s.civil||''):''); set('s-start',s?(s.start||''):''); set('s-due',s?(s.due||''):'');
+  set('s-stage',s?s.stage:0); set('s-progress',s?s.progress:0); set('s-status',s?s.status:'정상'); set('s-note',s?(s.note||''):'');
+  sChart=s?(s.processChart||''):''; renderChartThumb(); openModal('site-modal');
+}
+async function saveSite(){
+  const g=id=>document.getElementById(id).value; const name=g('s-name').trim(); if(!name){ toast('현장명을 입력하세요'); return; }
+  const sid=g('s-id'); const prev=sid?getSite(sid):null;
+  const o={ id:sid||undefined, name, owner:g('s-owner').trim(), type:g('s-type'), cap:+g('s-cap')||0, loc:g('s-loc').trim(),
+    mname:g('s-mname').trim(), mphone:g('s-mphone').trim(), cname:g('s-cname').trim(), cphone:g('s-cphone').trim(),
+    moduleModel:g('s-mmodel').trim(), moduleQty:+g('s-mqty')||0, inverterModel:g('s-imodel').trim(), inverterQty:+g('s-iqty')||0,
+    builder:g('s-builder').trim(), civil:g('s-civil').trim(), start:g('s-start'), due:g('s-due'),
+    stage:+g('s-stage'), progress:Math.min(100,Math.max(0,+g('s-progress')||0)), status:g('s-status'), note:g('s-note').trim(),
+    processChart:sChart, permits:prev?prev.permits:[], ackVersion:prev?prev.ackVersion:1 };
+  if(MODE==='local'){ o.issues=prev?prev.issues:[]; o.inspections=prev?prev.inspections:[]; o.acks=prev?prev.acks:[]; }
+  await DB.saveSite(o); await reload(); closeModal('site-modal'); renderOverview(); toast('현장을 저장했습니다',true);
+}
+
+/* ════════════ 이슈 CRUD ════════════ */
+function fillSiteSelect(sel,val){ sel.innerHTML=sites.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join(''); if(val)sel.value=val; }
+function openIssue(siteId,issueId){ const s=getSite(siteId), iss=issueId?(s.issues||[]).find(x=>x.id===issueId):null;
+  document.getElementById('issue-modal-title').textContent=iss?'이슈 수정':'이슈 등록';
+  fillSiteSelect(document.getElementById('i-site-sel'),siteId||(sites[0]&&sites[0].id));
+  const set=(id,v)=>document.getElementById(id).value=v;
+  set('i-id',iss?iss.id:''); set('i-date',iss?iss.date:todayISO()); set('i-cat',iss?iss.cat:'민원'); set('i-title',iss?iss.title:''); set('i-content',iss?iss.content:''); set('i-reporter',iss?(iss.reporter||''):(me?me.name:''));
+  set('i-actionby',iss?(iss.actionby||''):''); set('i-actiondate',iss?(iss.actiondate||''):''); set('i-action',iss?(iss.action||''):'');
+  set('i-status',iss?iss.status:'접수'); set('i-resolvedate',iss?(iss.resolvedate||''):''); set('i-resolution',iss?(iss.resolution||''):'');
+  iPhotos=iss?[...(iss.photos||[])]:[]; renderThumbs('i'); document.getElementById('i-delete').style.display=iss?'inline-flex':'none'; openModal('issue-modal');
+}
+async function saveIssue(){ const g=id=>document.getElementById(id).value; const siteId=g('i-site-sel'); if(!getSite(siteId)){ toast('현장을 선택하세요'); return; } const title=g('i-title').trim(); if(!title){ toast('제목을 입력하세요'); return; }
+  const o={ id:g('i-id')||undefined, date:g('i-date'), cat:g('i-cat'), title, content:g('i-content').trim(), reporter:g('i-reporter').trim(), actionby:g('i-actionby').trim(), actiondate:g('i-actiondate'), action:g('i-action').trim(), status:g('i-status'), resolvedate:g('i-resolvedate'), resolution:g('i-resolution').trim(), photos:[...iPhotos] };
+  await DB.saveIssue(siteId,o); await reload(); closeModal('issue-modal'); afterChange(siteId,'이슈'); toast('이슈를 저장했습니다',true);
+}
+async function deleteIssue(){ const id=document.getElementById('i-id').value, siteId=document.getElementById('i-site-sel').value; await DB.deleteIssue(siteId,id); await reload(); closeModal('issue-modal'); afterChange(detailId,'이슈'); toast('이슈를 삭제했습니다'); }
+
+/* ════════════ 점검 CRUD ════════════ */
+function openInspection(siteId,inspId){ const s=getSite(siteId), n=inspId?(s.inspections||[]).find(x=>x.id===inspId):null;
+  document.getElementById('insp-modal-title').textContent=n?'점검 기록 수정':'현장 점검 기록';
+  fillSiteSelect(document.getElementById('n-site-sel'),siteId||(sites[0]&&sites[0].id));
+  const set=(id,v)=>document.getElementById(id).value=v;
+  set('n-id',n?n.id:''); set('n-date',n?n.date:todayISO()); set('n-inspector',n?(n.inspector||''):(me?me.name:'')); set('n-result',n?n.result:'이상 없음'); set('n-note',n?(n.note||''):'');
+  nPhotos=n?[...(n.photos||[])]:[]; renderThumbs('n'); document.getElementById('n-delete').style.display=n?'inline-flex':'none'; openModal('insp-modal');
+}
+async function saveInspection(){ const g=id=>document.getElementById(id).value; const siteId=g('n-site-sel'); if(!getSite(siteId)){ toast('현장을 선택하세요'); return; }
+  const o={ id:g('n-id')||undefined, date:g('n-date'), inspector:g('n-inspector').trim(), result:g('n-result'), note:g('n-note').trim(), photos:[...nPhotos] };
+  await DB.saveInspection(siteId,o); await reload(); closeModal('insp-modal'); afterChange(siteId,'점검'); toast('점검 기록을 저장했습니다',true);
+}
+async function deleteInspection(){ const id=document.getElementById('n-id').value, siteId=document.getElementById('n-site-sel').value; await DB.deleteInspection(siteId,id); await reload(); closeModal('insp-modal'); afterChange(detailId,'점검'); toast('점검 기록을 삭제했습니다'); }
+
+function afterChange(siteId,tab){ if(detailId&&document.getElementById('detail-modal').classList.contains('open')){ if(siteId===detailId&&tab)detailTab=tab; renderDetail(); } renderOverview(); if(activeMod==='issues')renderIssues(); }
+
+/* ════════════ 이슈·점검 모아보기 ════════════ */
+function renderIssues(){
+  const allI=[],allN=[]; sites.forEach(s=>{ (s.issues||[]).forEach(i=>allI.push({...i,site:s.name,siteId:s.id})); (s.inspections||[]).forEach(n=>allN.push({...n,site:s.name,siteId:s.id})); });
+  const open=allI.filter(i=>i.status!=='처리완료');
+  document.getElementById('ki-open').innerHTML=open.length+'<small>건</small>'; document.getElementById('ki-done').innerHTML=allI.filter(i=>i.status==='처리완료').length+'<small>건</small>';
+  document.getElementById('ki-insp').innerHTML=allN.length+'<small>건</small>'; document.getElementById('ki-ng').innerHTML=allN.filter(n=>n.result==='문제 발견').length+'<small>건</small>';
+  const rows=open.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('iss-rows').innerHTML=rows.length?rows.map(i=>`<tr style="cursor:pointer" onclick="openDetail('${i.siteId}');setTimeout(function(){setDetailTab('이슈')},30)"><td class="muted">${i.date||'—'}</td><td><b>${esc(i.site)}</b></td><td><span class="pill during">${i.cat}</span></td><td>${esc(i.title)}</td><td><span class="pill ${i.status==='조치중'?'caution':'warn'}">${i.status}</span></td><td class="muted">${esc(i.actionby)||'—'}</td><td class="muted">${(i.photos||[]).length?'📷 '+i.photos.length:'—'}</td></tr>`).join(''):'<tr><td colspan="7"><div class="empty">미해결 이슈가 없습니다. 👍</div></td></tr>';
+  const ir=allN.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,20);
+  document.getElementById('insp-rows').innerHTML=ir.length?ir.map(n=>`<tr style="cursor:pointer" onclick="openDetail('${n.siteId}');setTimeout(function(){setDetailTab('점검')},30)"><td class="muted">${n.date||'—'}</td><td><b>${esc(n.site)}</b></td><td>${esc(n.inspector)||'—'}</td><td><span class="pill ${n.result==='문제 발견'?'warn':'ok'}">${n.result}</span></td><td class="muted">${esc(n.note).slice(0,40)}</td><td class="muted">${(n.photos||[]).length?'📷 '+n.photos.length:'—'}</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">점검 기록이 없습니다.</div></td></tr>';
+}
+
+/* ════════════ 안전관리 ════════════ */
+function renderPresets(){ const g=document.getElementById('preset-grid'); if(!presets.length){ g.innerHTML='<div class="empty">프리셋이 없습니다.</div>'; } else g.innerHTML=presets.map(p=>`<div class="preset"><div><span class="pill ${catClass(p.category)}">${p.category}</span></div><h4>${esc(p.title)}</h4><div class="body">${esc(p.body)}</div>${p.sched&&p.sched.on?`<div class="sched">⏰ ${schedLabel(p.sched)} 자동발송</div>`:''}<div class="foot" style="margin-top:10px"><button class="btn sm" onclick="openPreset('${p.id}')">수정</button><button class="btn sm primary" onclick="quickSend('${p.id}')">이 안내 보내기</button></div></div>`).join(''); refreshBadges(); }
+function schedLabel(s){ const fr=s.freq==='daily'?'매일':s.freq==='weekday'?'평일':'매주 '+['일','월','화','수','목','금','토'][s.weekday]; return `${fr} ${s.time}`; }
+function openPreset(id){ const p=id?presets.find(x=>x.id===id):null; document.getElementById('preset-modal-title').textContent=p?'프리셋 수정':'새 안내 프리셋';
+  const set=(i,v)=>document.getElementById(i).value=v; set('p-id',p?p.id:''); set('p-category',p?p.category:'작업 전'); set('p-title',p?p.title:''); set('p-body',p?p.body:'');
+  const s=p?p.sched:{on:false,freq:'weekday',time:'07:00',weekday:'1'}; document.getElementById('p-sched-on').checked=s.on; set('p-sched-freq',s.freq); set('p-sched-time',s.time); set('p-sched-weekday',s.weekday||'1');
+  toggleWeekday(); document.getElementById('p-delete').style.display=p?'inline-flex':'none'; openModal('preset-modal'); }
+document.getElementById('p-sched-freq').onchange=toggleWeekday;
+function toggleWeekday(){ document.getElementById('p-weekday-wrap').style.display=document.getElementById('p-sched-freq').value==='weekly'?'block':'none'; }
+async function savePreset(){ const g=i=>document.getElementById(i).value; const title=g('p-title').trim(), body=g('p-body').trim(); if(!title||!body){ toast('제목과 문구를 입력하세요'); return; }
+  const o={ id:g('p-id')||undefined, category:g('p-category'), title, body, sched:{on:document.getElementById('p-sched-on').checked,freq:g('p-sched-freq'),time:g('p-sched-time'),weekday:g('p-sched-weekday')} };
+  await DB.savePreset(o); await reload(); renderPresets(); renderShome(); closeModal('preset-modal'); toast('프리셋을 저장했습니다',true); }
+async function deletePreset(){ await DB.deletePreset(document.getElementById('p-id').value); await reload(); renderPresets(); renderShome(); closeModal('preset-modal'); toast('삭제했습니다'); }
+
+function initSend(){ document.getElementById('send-mode-tag').className='pill '+(isConnected()?'ok':'etc'); document.getElementById('send-mode-tag').textContent=isConnected()?'문자나라 연동됨':'연동 전 · 시뮬레이션';
+  document.getElementById('send-preset').innerHTML=presets.map(p=>`<option value="${p.id}">[${p.category}] ${esc(p.title)}</option>`).join('');
+  document.getElementById('send-sites').innerHTML=sites.map(s=>`<label class="checkline"><input type="checkbox" class="send-site" value="${s.id}" onchange="renderSendPreview()" checked><span><b>${esc(s.name)}</b> · ${esc(s.mname)} 소장 ${s.mphone?'':'<span class="pill warn" style="margin-left:4px">번호없음</span>'}</span></label>`).join(''); renderSendPreview(); }
+function selectAllSites(v){ document.querySelectorAll('.send-site').forEach(c=>c.checked=v); renderSendPreview(); }
+function selectedSites(){ return [...document.querySelectorAll('.send-site:checked')].map(c=>getSite(c.value)); }
+function renderSendPreview(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value), chosen=selectedSites(), box=document.getElementById('send-preview');
+  document.getElementById('send-count').textContent=chosen.length?`· ${chosen.length}건`:''; document.getElementById('btn-sendall').disabled=!(p&&chosen.length);
+  if(!p||!chosen.length){ box.innerHTML='<div class="empty">프리셋과 대상을 선택하세요.</div>'; return; }
+  box.innerHTML=chosen.map(s=>{ const msg=fill(p.body,s),type=msgType(msg),no=!s.mphone; return `<div class="preset" style="max-height:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><b>📍 ${esc(s.name)} · ${esc(s.mname)} 소장</b><span><span class="pill ${type==='SMS'?'sms':'lms'}">${type} · ${byteLen(msg)}byte</span> <span class="pill ${catClass(p.category)}">${p.category}</span></span></div><div class="body" style="max-height:none">${esc(msg)}</div><div class="foot"><span class="pill ${no?'warn':'etc'}">📱 ${no?'번호없음':esc(s.mphone)}</span><button class="btn sm" onclick="copyOne('${p.id}','${s.id}')">📋 복사</button><button class="btn sm green" onclick="sendOne('${p.id}','${s.id}')" ${no?'disabled':''}>📩 문자 발송</button></div></div>`; }).join(''); }
+function copyOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); copyText(fill(p.body,s)); toast('문구를 복사했습니다',true); }
+async function doSend(p,s,auto){ const phone=(s.mphone||'').trim(),text=fill(p.body,s),type=msgType(text); if(!phone){ if(!auto)toast('⚠ '+s.mname+' 소장 번호가 없습니다'); await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone:'—',type,status:'실패(번호없음)'}); return false; } await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone,type,status:(auto?'자동 ':'')+(isConnected()?'발송 성공':'발송(시뮬)')}); return true; }
+async function sendOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); if(await doSend(p,s,false)){ await reload(); if(activeSub==='logs')renderLogs(); renderShome(); toast(`${s.mname} 소장에게 문자 발송${isConnected()?'':'(시뮬)'} 완료`,true); } }
+async function sendAll(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value); let ok=0,f=0; for(const s of selectedSites()){ (await doSend(p,s,false))?ok++:f++; } await reload(); renderShome(); toast(`발송 완료 — 성공 ${ok}건${f?`, 번호없음 ${f}건`:''}`,true); }
+function quickSend(pid){ gotoSafety('send'); setTimeout(()=>{ document.getElementById('send-preset').value=pid; renderSendPreview(); },80); }
+function quickSafety(sid){ gotoSafety('send'); setTimeout(()=>{ document.querySelectorAll('.send-site').forEach(c=>c.checked=(c.value===sid)); renderSendPreview(); },80); }
+
+async function toggleAuto(){ settings.auto=document.getElementById('auto-toggle').checked; await DB.saveSettingsRemote(); renderAutoState(); toast(settings.auto?'🤖 자동발송을 켰습니다':'자동발송을 껐습니다',settings.auto); }
+function renderAutoState(){ const c=document.getElementById('auto-toggle'); if(!c)return; c.checked=!!settings.auto; const st=document.getElementById('auto-state'); st.textContent=settings.auto?'켜짐':'꺼짐'; st.className='pill '+(settings.auto?'auto':'etc'); }
+function tickClock(){ const el=document.getElementById('auto-clock'); if(el)el.textContent='현재 시각 '+nowStamp()+(settings.auto?' · 예약 감시 중':' · 자동발송 꺼짐'); }
+function dueToday(p){ const dow=new Date().getDay(),s=p.sched; if(!s||!s.on)return false; if(s.freq==='daily')return true; if(s.freq==='weekday')return dow>=1&&dow<=5; if(s.freq==='weekly')return String(dow)===String(s.weekday); return false; }
+async function autoFire(p,test){ let ok=0; for(const s of sites){ if(await doSend(p,s,true))ok++; } await reload(); toast(`🤖 자동발송: [${p.title}] ${ok}개 현장 발송${isConnected()?'':'(시뮬)'}${test?' · 테스트':''}`,true); renderShome(); }
+async function autoCheck(){ tickClock(); if(!settings.auto)return; const t=nowTime(); for(const p of presets){ if(dueToday(p)&&p.sched.time===t){ const k=`${p.id}|${ymd()}|${t}`; if(!marks[k]){ marks[k]=true; if(MODE==='local')persistLocal(); await autoFire(p,false); } } } }
+async function runAutoNow(){ const q=presets.filter(dueToday); if(!q.length){ toast('오늘 예약된 안내가 없습니다'); return; } for(const p of q) await autoFire(p,true); }
+
+function renderShome(){ document.getElementById('today-str').textContent=todayStr()+' ('+['일','월','화','수','목','금','토'][new Date().getDay()]+')'; renderAutoState(); tickClock();
+  const q=presets.filter(dueToday), ql=document.getElementById('queue-list');
+  if(!q.length){ ql.innerHTML='<div class="empty">오늘 예약된 안내가 없습니다. 프리셋에서 ⏰ 예약을 걸어보세요.</div>'; } else ql.innerHTML=q.sort((a,b)=>a.sched.time.localeCompare(b.sched.time)).map(p=>`<div class="preset" style="max-height:none"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="muted" style="font-size:12px">⏰ ${schedLabel(p.sched)} · 대상 전체 ${sites.length}곳</div><div style="margin-top:3px"><span class="pill ${catClass(p.category)}">${p.category}</span> <b style="margin-left:4px">${esc(p.title)}</b></div></div><button class="btn primary" onclick="quickSend('${p.id}')">지금 보내기 →</button></div></div>`).join('');
+  const rl=document.getElementById('recent-list'), recent=logs.slice(0,6);
+  if(!recent.length){ rl.innerHTML='<div class="empty">아직 발송 기록이 없습니다.</div>'; } else rl.innerHTML='<table><tbody>'+recent.map(l=>`<tr><td class="muted" style="width:110px">${l.stamp}</td><td><span class="pill ${catClass(l.category)}">${l.category}</span></td><td>${esc(l.title)}</td><td class="muted">${esc(l.name)} · ${esc(l.site)}</td><td>${statusPill(l.status)}</td></tr>`).join('')+'</tbody></table>'; }
+function statusPill(st){ if((st||'').includes('실패'))return '<span class="pill warn">'+st+'</span>'; if((st||'').includes('자동'))return '<span class="pill auto">'+st+'</span>'; return '<span class="pill ok">'+st+'</span>'; }
+function renderLogs(){ const tb=document.getElementById('log-rows'); if(!logs.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty">발송 기록이 없습니다.</div></td></tr>'; } else tb.innerHTML=logs.map(l=>`<tr><td class="muted">${l.stamp}</td><td><span class="pill ${catClass(l.category)}">${l.category}</span></td><td>${esc(l.title)}</td><td>${esc(l.name)}</td><td class="muted">${esc(l.phone)}</td><td>${l.type?`<span class="pill ${l.type==='SMS'?'sms':'lms'}">${l.type}</span>`:'—'}</td><td>${statusPill(l.status)}</td></tr>`).join(''); refreshBadges(); }
+async function clearLogs(){ if(confirm('발송 로그를 모두 지울까요?')){ await DB.clearLogs(); await reload(); renderLogs(); renderShome(); } }
+
+function fillSettings(){ document.getElementById('set-id').value=settings.id||''; document.getElementById('set-key').value=settings.key||''; document.getElementById('set-sender').value=settings.sender||''; document.getElementById('set-type').value=settings.type||'auto'; document.getElementById('set-status').innerHTML=''; }
+async function saveSettings(){ settings.id=document.getElementById('set-id').value.trim(); settings.key=document.getElementById('set-key').value.trim(); settings.sender=document.getElementById('set-sender').value.trim(); settings.type=document.getElementById('set-type').value; await DB.saveSettingsRemote(); renderConn(); toast('설정을 저장했습니다',true); testConn(); }
+function testConn(){ const b=document.getElementById('set-status'); if(isConnected()){ b.innerHTML='<span class="pill ok">● 연동됨</span> <span class="muted" style="font-size:12.5px">실제 발송 모드 (실발송은 API 서버 연동 필요)</span>'; } else { b.innerHTML='<span class="pill warn">● 연동 전</span> <span class="muted" style="font-size:12.5px">인증키·발신번호 입력 전까지 시뮬레이션</span>'; } }
+function renderConn(){ const mp=document.getElementById('modepill'); }
+
+/* ════════════ 백업/복원/공통 ════════════ */
+function exportData(){ const blob=new Blob([JSON.stringify({sites,presets,logs,settings},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='시공현황_백업_'+ymd()+'.json'; a.click(); toast('백업 파일을 내려받았습니다',true); }
+function importData(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(MODE==='local'){ sites=d.sites||sites; presets=d.presets||presets; logs=d.logs||logs; if(d.settings)settings=d.settings; persistLocal(); renderAll(); toast('복원 완료',true); } else { toast('클라우드 모드에서는 복원 대신 DB를 사용합니다.'); } }catch(err){ toast('파일을 읽을 수 없습니다'); } }; r.readAsText(f); e.target.value=''; }
+async function resetDemo(){ if(MODE!=='local'){ toast('클라우드 모드는 Supabase에서 관리합니다.'); return; } if(confirm('예제 데이터로 초기화할까요?')){ localStorage.removeItem(LS.sites); localStorage.removeItem(LS.presets); seedLocal(); renderAll(); toast('예제로 초기화했습니다',true); } }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o)o.classList.remove('open'); }));
+function refreshBadges(){ document.getElementById('b-presets').textContent=presets.length; document.getElementById('b-logs').textContent=logs.length; document.getElementById('b-issues').textContent=sites.reduce((a,s)=>a+(s.issues||[]).filter(i=>i.status!=='처리완료').length,0); }
+function renderAll(){ renderConn(); renderOverview(); refreshBadges(); }
+
+boot();
+</script>
+</body>
+</html>
