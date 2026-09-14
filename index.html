@@ -131,7 +131,7 @@
   <div class="loginbox">
     <div class="lg"><div class="mark">☀️</div><div><h1>시공현장 종합 현황</h1></div></div>
     <p class="sub">시공관리팀 로그인</p>
-    <div class="field"><label class="f">이메일</label><input class="t" id="lg-email" type="email" placeholder="you@company.com"></div>
+    <div class="field"><label class="f">로그인 ID</label><input class="t" id="lg-email" type="text" autocapitalize="off" autocomplete="username" placeholder="예: master"></div>
     <div class="field"><label class="f">비밀번호</label><input class="t" id="lg-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="btn primary block" onclick="doLogin()">로그인</button>
     <div id="lg-msg" class="muted" style="font-size:12px;margin-top:12px;text-align:center"></div>
@@ -357,6 +357,8 @@
    태양광 시공현장 종합 현황 — 앱 로직 (로컬/클라우드 자동전환)
    ═══════════════════════════════════════════════════════════════ */
 const STAGES=['계약','인허가','설계','자재입고','토목·기초','구조물','모듈설치','전기공사','계통연계','준공검사'];
+// 로그인 ID → 실제 이메일 매핑 (이메일 안 쳐도 되게. 기존 happysolar/상담일지 계정 공용)
+const LOGIN_MAP={ master:'master@example.com', 관리자:'admin@example.com', admin:'admin@example.com', 본사:'hq@example.com', 광주:'hq@example.com', 장흥:'jangheung@example.com', 영암:'yeongam@example.com', 평택:'pyeongtaek@example.com', 파주:'paju@example.com', 영상팀:'video@example.com', 영상:'video@example.com' };
 const MODE = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) ? 'cloud' : 'local';
 let sb=null; if(MODE==='cloud') sb=window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
@@ -477,8 +479,9 @@ function acksFor(s){
 
 /* ════════════ 인증 ════════════ */
 async function doLogin(){
-  const email=document.getElementById('lg-email').value.trim(), pw=document.getElementById('lg-pw').value;
-  const msg=document.getElementById('lg-msg'); msg.textContent='로그인 중…';
+  const raw=document.getElementById('lg-email').value.trim(), pw=document.getElementById('lg-pw').value;
+  const email = raw.includes('@') ? raw : (LOGIN_MAP[raw] || LOGIN_MAP[raw.toLowerCase()] || raw);
+  const msg=document.getElementById('lg-msg'); msg.style.color='var(--sub)'; msg.textContent='로그인 중…';
   const {error}=await sb.auth.signInWithPassword({email,password:pw});
   if(error){ msg.style.color='var(--red)'; msg.textContent='로그인 실패: '+error.message; }
 }
