@@ -170,7 +170,7 @@
   <button data-mod="photos">📸 시공 사진</button>
   <button data-mod="members" id="mod-members" style="display:none">👥 계정관리</button>
   <button data-mod="audit" id="mod-audit" style="display:none">🧾 로그</button>
-  <button data-mod="quality" disabled>📋 품질·검사 <span class="soon">준비중</span></button>
+  <button data-mod="verify">📋 공문 검증</button>
 </nav>
 
 <nav class="subs" id="subs">
@@ -260,6 +260,28 @@
     <div class="card" style="overflow:hidden"><table><thead><tr><th style="width:135px">시각</th><th>계정</th><th>행동</th><th>대상</th><th>내용</th></tr></thead><tbody id="audit-rows"></tbody></table></div>
   </section>
 
+  <!-- 공문 검증 -->
+  <section class="view" id="v-verify">
+    <h2 class="title">공문 제출 검증</h2>
+    <p class="desc">현장을 고르고 제출 공문(PDF)이 든 폴더를 지정하면, 현장 <b>기준값</b>과 대조해 오기·불일치를 <b>색상으로</b> 표시합니다.</p>
+    <div class="note blue"><span class="i">ℹ️</span><span>공문이 <b>hwp</b>면 한글에서 <b>"PDF로 저장"</b> 후 그 PDF들을 한 폴더에 모아 지정하세요. (브라우저는 hwp 원본을 직접 읽지 못합니다) · 파일은 서버로 업로드되지 않고 <b>브라우저 안에서만</b> 검사됩니다.</span></div>
+    <div class="row">
+      <div class="col card pad" style="max-width:380px">
+        <div class="field"><label class="f">① 검증 대상 현장</label><select class="t" id="vf-site" onchange="renderVerifyRefs()"></select></div>
+        <div class="field"><label class="f">② 기준값 (현장 정보에서 자동)</label><div id="vf-refs"></div><div class="muted" style="font-size:11px;margin-top:6px">※ 사업자번호·면적이 비어 있으면 현황개요에서 현장 수정으로 입력하세요.</div></div>
+        <div class="field"><label class="f">③ 공문 폴더</label>
+          <button class="btn primary block" onclick="pickVerifyFolder()">📁 PDF 폴더 선택</button>
+          <div style="text-align:center;margin:6px 0"><span class="muted" style="font-size:11px">또는</span></div>
+          <label class="uploadbtn" style="width:100%;justify-content:center">📄 PDF 파일 직접 선택<input type="file" accept="application/pdf,.pdf" multiple style="display:none" onchange="onVerifyFiles(event)"></label>
+        </div>
+      </div>
+      <div class="col" style="min-width:300px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><b style="font-size:14px">④ 검증 결과 <span class="muted" id="vf-count"></span></b><span id="vf-legend" class="muted" style="font-size:11px"></span></div>
+        <div id="vf-results"><div class="empty">현장과 폴더(또는 PDF 파일)를 선택하세요.</div></div>
+      </div>
+    </div>
+  </section>
+
   <!-- 안전 홈 -->
   <section class="view" id="v-shome">
     <h2 class="title">현장 작업자 안전관리</h2>
@@ -340,7 +362,8 @@
   <div class="mb">
     <input type="hidden" id="s-id">
     <div class="row"><div class="col field" style="flex:2"><label class="f">현장명</label><input class="t" id="s-name" placeholder="예) 김포 물류창고 지붕태양광"></div><div class="col field"><label class="f">사업주 성명</label><input class="t" id="s-owner" placeholder="(주)○○물류 / 홍길동"></div></div>
-    <div class="row"><div class="col field"><label class="f">유형</label><select class="t" id="s-type"><option>지붕</option><option>부지</option><option>축사</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div><div class="col field"><label class="f">위치</label><input class="t" id="s-loc" placeholder="경기 김포"></div></div>
+    <div class="row"><div class="col field"><label class="f">유형</label><select class="t" id="s-type"><option>지붕</option><option>부지</option><option>축사</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div><div class="col field"><label class="f">면적(㎡)</label><input class="t" id="s-area" type="number" placeholder="3300"></div></div>
+    <div class="row"><div class="col field"><label class="f">위치/주소</label><input class="t" id="s-loc" placeholder="경기 김포시 ..."></div><div class="col field"><label class="f">사업자번호</label><input class="t" id="s-bizno" placeholder="123-45-67890"></div></div>
     <div class="row"><div class="col field"><label class="f">소장 이름</label><input class="t" id="s-mname" placeholder="홍길동"></div><div class="col field"><label class="f">소장 휴대폰 <span class="muted" style="font-weight:500">(문자 대상)</span></label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
     <div class="row"><div class="col field"><label class="f">담당자 이름</label><input class="t" id="s-cname" placeholder="김담당"></div><div class="col field"><label class="f">담당자 휴대폰</label><input class="t" id="s-cphone" placeholder="010-0000-0000"></div></div>
     <div class="row"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel" placeholder="한화 Q.PEAK 575W"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty" placeholder="1069"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel" placeholder="HD500"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty" placeholder="2"></div></div>
@@ -501,8 +524,8 @@ const DB={
 function mediaFromRow(r){ return {id:r.id,kind:r.kind,url:r.url,name:r.name,mime:r.mime,size:r.size,uploader:r.uploader,at:fmtStamp(r.created_at)}; }
 function audit(action,entity,name,detail){ if(MODE!=='cloud'||!me||!me.id) return; sb.from('sc_audit').insert({user_id:me.id,email:me.email,role:me.role||null,action,entity,entity_name:name||null,detail:detail||null}).then(function(){},function(){}); }
 /* row 매핑 */
-function siteFromRow(r){ return {id:r.id,name:r.name,owner:r.owner,type:r.type,cap:r.cap,loc:r.loc,mname:r.mname,mphone:r.mphone,cname:r.cname,cphone:r.cphone,start:r.start_date,due:r.due_date,stage:r.stage,progress:r.progress,status:r.status,note:r.note,moduleModel:r.module_model,moduleQty:r.module_qty,inverterModel:r.inverter_model,inverterQty:r.inverter_qty,builder:r.builder,civil:r.civil,processChart:r.process_chart,permits:r.permits||[],acks:r.acks||[],ackVersion:r.ack_version||1}; }
-function siteToRow(o){ return {name:o.name,owner:o.owner,type:o.type,cap:o.cap,loc:o.loc,mname:o.mname,mphone:o.mphone,cname:o.cname,cphone:o.cphone,start_date:o.start||null,due_date:o.due||null,stage:o.stage,progress:o.progress,status:o.status,note:o.note,module_model:o.moduleModel,module_qty:o.moduleQty,inverter_model:o.inverterModel,inverter_qty:o.inverterQty,builder:o.builder,civil:o.civil,process_chart:o.processChart,permits:o.permits||[],acks:o.acks||[]}; }
+function siteFromRow(r){ return {id:r.id,name:r.name,owner:r.owner,type:r.type,cap:r.cap,loc:r.loc,mname:r.mname,mphone:r.mphone,cname:r.cname,cphone:r.cphone,start:r.start_date,due:r.due_date,stage:r.stage,progress:r.progress,status:r.status,note:r.note,moduleModel:r.module_model,moduleQty:r.module_qty,inverterModel:r.inverter_model,inverterQty:r.inverter_qty,builder:r.builder,civil:r.civil,processChart:r.process_chart,permits:r.permits||[],acks:r.acks||[],ackVersion:r.ack_version||1,bizno:r.bizno,area:r.area}; }
+function siteToRow(o){ return {name:o.name,owner:o.owner,type:o.type,cap:o.cap,loc:o.loc,mname:o.mname,mphone:o.mphone,cname:o.cname,cphone:o.cphone,start_date:o.start||null,due_date:o.due||null,stage:o.stage,progress:o.progress,status:o.status,note:o.note,module_model:o.moduleModel,module_qty:o.moduleQty,inverter_model:o.inverterModel,inverter_qty:o.inverterQty,builder:o.builder,civil:o.civil,process_chart:o.processChart,permits:o.permits||[],acks:o.acks||[],bizno:o.bizno||null,area:o.area||null}; }
 function issueFromRow(r){ return {id:r.id,date:r.date,cat:r.cat,title:r.title,content:r.content,reporter:r.reporter,actionby:r.actionby,actiondate:r.actiondate,action:r.action,status:r.status,resolvedate:r.resolvedate,resolution:r.resolution,photos:r.photos||[]}; }
 function issueToRow(o){ return {date:o.date||null,cat:o.cat,title:o.title,content:o.content,reporter:o.reporter,actionby:o.actionby,actiondate:o.actiondate||null,action:o.action,status:o.status,resolvedate:o.resolvedate||null,resolution:o.resolution,photos:o.photos||[]}; }
 function inspFromRow(r){ return {id:r.id,date:r.date,inspector:r.inspector,result:r.result,note:r.note,photos:r.photos||[]}; }
@@ -639,6 +662,7 @@ document.querySelectorAll('#mods button').forEach(b=>{ if(b.disabled) return; b.
   else if(activeMod==='issues'){ showView('v-issues'); renderIssues(); }
   else if(activeMod==='photos'){ showView('v-photos'); renderPhotos(); }
   else if(activeMod==='members'){ showView('v-members'); renderMembers(); }
+  else if(activeMod==='verify'){ showView('v-verify'); initVerify(); }
   else if(activeMod==='audit'){ showView('v-audit'); loadAuditAndRender(); }
 };});
 document.querySelectorAll('#subs button').forEach(b=>{ b.onclick=()=>showSub(b.dataset.sub); });
@@ -766,7 +790,7 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
   const v=(k,d)=>document.getElementById(k).value=(s?(s[d==null?k:d]??''):''); // not used
   document.getElementById('s-id').value=s?s.id:'';
   const set=(id2,val)=>document.getElementById(id2).value=val;
-  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'지붕'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):'');
+  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'지붕'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):''); set('s-area',s?(s.area||''):''); set('s-bizno',s?(s.bizno||''):'');
   set('s-mname',s?(s.mname||''):''); set('s-mphone',s?(s.mphone||''):''); set('s-cname',s?(s.cname||''):''); set('s-cphone',s?(s.cphone||''):'');
   set('s-mmodel',s?(s.moduleModel||''):''); set('s-mqty',s?(s.moduleQty||''):''); set('s-imodel',s?(s.inverterModel||''):''); set('s-iqty',s?(s.inverterQty||''):'');
   set('s-builder',s?(s.builder||''):''); set('s-civil',s?(s.civil||''):''); set('s-start',s?(s.start||''):''); set('s-due',s?(s.due||''):'');
@@ -776,7 +800,7 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
 async function saveSite(){
   const g=id=>document.getElementById(id).value; const name=g('s-name').trim(); if(!name){ toast('현장명을 입력하세요'); return; }
   const sid=g('s-id'); const prev=sid?getSite(sid):null;
-  const o={ id:sid||undefined, name, owner:g('s-owner').trim(), type:g('s-type'), cap:+g('s-cap')||0, loc:g('s-loc').trim(),
+  const o={ id:sid||undefined, name, owner:g('s-owner').trim(), type:g('s-type'), cap:+g('s-cap')||0, loc:g('s-loc').trim(), area:+g('s-area')||0, bizno:g('s-bizno').trim(),
     mname:g('s-mname').trim(), mphone:g('s-mphone').trim(), cname:g('s-cname').trim(), cphone:g('s-cphone').trim(),
     moduleModel:g('s-mmodel').trim(), moduleQty:+g('s-mqty')||0, inverterModel:g('s-imodel').trim(), inverterQty:+g('s-iqty')||0,
     builder:g('s-builder').trim(), civil:g('s-civil').trim(), start:g('s-start'), due:g('s-due'),
@@ -871,6 +895,59 @@ function renderAudit(){
   document.getElementById('audit-count').textContent=`${rows.length}건`;
   document.getElementById('audit-rows').innerHTML=rows.length?rows.map(r=>`<tr><td class="muted">${fmtStamp(r.created_at)}</td><td><b>${esc(r.email||'')}</b>${r.role==='admin'?' <span class="pill etc">관리자</span>':''}</td><td>${actPill(r.action)}</td><td>${esc(r.entity_name||'')} <span class="muted" style="font-size:11px">${esc(r.entity||'')}</span></td><td class="muted">${esc(r.detail||'')}</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty">기록이 없습니다.</div></td></tr>';
 }
+
+/* ════════════ 공문 검증 (PDF ↔ 현장 기준값) ════════════ */
+function siteRefs(s){ const r=[];
+  if(s.owner) r.push({label:'사업주',value:String(s.owner),type:'text'});
+  if(s.bizno) r.push({label:'사업자번호',value:String(s.bizno),type:'bizno'});
+  if(s.cap) r.push({label:'용량',value:String(s.cap),unit:'kW',type:'num'});
+  if(s.area) r.push({label:'면적',value:String(s.area),unit:'㎡',type:'num'});
+  if(s.loc) r.push({label:'주소/위치',value:String(s.loc),type:'text'});
+  if(s.moduleModel) r.push({label:'모듈모델',value:String(s.moduleModel),type:'text'});
+  if(s.moduleQty) r.push({label:'모듈수량',value:String(s.moduleQty),unit:'장',type:'num'});
+  if(s.inverterModel) r.push({label:'인버터모델',value:String(s.inverterModel),type:'text'});
+  if(s.inverterQty) r.push({label:'인버터수량',value:String(s.inverterQty),unit:'대',type:'num'});
+  return r;
+}
+function initVerify(){ const sel=document.getElementById('vf-site'); const cur=sel.value; sel.innerHTML=sites.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join(''); if(cur&&sites.some(s=>s.id===cur))sel.value=cur; else if(sites[0])sel.value=sites[0].id; renderVerifyRefs(); document.getElementById('vf-legend').textContent='🟢 일치  🔴 기준과 다름  ⚪ 문서에 없음'; }
+function renderVerifyRefs(){ const s=getSite(document.getElementById('vf-site').value); const box=document.getElementById('vf-refs'); if(!s){ box.innerHTML='<div class="muted" style="font-size:12px">현장이 없습니다.</div>'; return; } const refs=siteRefs(s); box.innerHTML=refs.length?refs.map(r=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;border-bottom:1px solid var(--line2)"><span class="muted">${r.label}</span><b>${esc(r.value)}${r.unit||''}</b></div>`).join(''):'<div class="muted" style="font-size:12px">기준값이 없습니다. 현장 정보를 입력하세요.</div>'; }
+let pdfjsReady=null;
+function ensurePdfjs(){ if(pdfjsReady) return pdfjsReady; pdfjsReady=new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; sc.onload=()=>{ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib); }catch(e){ rej(e); } }; sc.onerror=()=>rej(new Error('pdf.js 로드 실패')); document.head.appendChild(sc); }); return pdfjsReady; }
+async function pdfText(buf){ const lib=await ensurePdfjs(); const doc=await lib.getDocument({data:buf}).promise; let t=''; for(let p=1;p<=doc.numPages;p++){ const pg=await doc.getPage(p); const c=await pg.getTextContent(); t+=c.items.map(i=>i.str).join(' ')+'\n'; } return t; }
+function nd(v){ return String(v).replace(/[^0-9]/g,''); }
+function validateDoc(text, refs){ const T=(text||'').replace(/\s+/g,' '); const Tn=T.replace(/,/g,'');
+  return refs.map(r=>{
+    if(r.type==='num'){ const tgt=nd(r.value);
+      if(tgt && new RegExp('(^|[^0-9])'+tgt+'([^0-9]|$)').test(Tn)) return {...r,status:'ok',doc:r.value+(r.unit||'')};
+      let docv=''; if(r.unit){ const m=Tn.match(new RegExp('([0-9]+(?:\\.[0-9]+)?)\\s*'+r.unit)); if(m)docv=m[1]; }
+      if(!docv){ const li=Tn.indexOf(r.label); if(li>=0){ const m=Tn.slice(li,li+24).match(/([0-9]+(?:\.[0-9]+)?)/); if(m)docv=m[1]; } }
+      if(docv && nd(docv)!==tgt) return {...r,status:'bad',doc:docv+(r.unit||'')};
+      return {...r,status:'missing',doc:'—'};
+    }
+    if(r.type==='bizno'){ const tgt=nd(r.value); const dg=Tn.replace(/[^0-9]/g,''); if(tgt&&dg.includes(tgt)) return {...r,status:'ok',doc:r.value}; const m=T.match(/\d{3}-?\d{2}-?\d{5}/); if(m&&nd(m[0])!==tgt) return {...r,status:'bad',doc:m[0]}; return {...r,status:'missing',doc:'—'}; }
+    if(T.includes(String(r.value))) return {...r,status:'ok',doc:r.value};
+    return {...r,status:'missing',doc:'—'};
+  });
+}
+async function verifyFiles(fileList){ const s=getSite(document.getElementById('vf-site').value); if(!s){ toast('현장을 선택하세요'); return; } const refs=siteRefs(s); if(!refs.length){ toast('기준값이 없습니다(현장 정보 입력)'); return; }
+  const box=document.getElementById('vf-results'); const files=[...fileList].filter(f=>/\.pdf$/i.test(f.name)); if(!files.length){ box.innerHTML='<div class="empty">PDF 파일이 없습니다.</div>'; return; }
+  box.innerHTML='<div class="empty">PDF 읽는 중… ('+files.length+'개)</div>';
+  const out=[]; let bad=0;
+  for(const f of files){ let text='',err=''; try{ text=await pdfText(await f.arrayBuffer()); }catch(e){ err=e.message||'읽기 실패'; }
+    const res=err?[]:validateDoc(text,refs); bad+=res.filter(x=>x.status==='bad').length; out.push({name:f.name,err,res}); }
+  document.getElementById('vf-count').textContent=`· 파일 ${out.length} / 불일치 ${bad}건`;
+  box.innerHTML=out.map(o=>{ if(o.err) return `<div class="isscard open"><b>📄 ${esc(o.name)}</b><div class="muted" style="font-size:12px;margin-top:4px">읽기 실패: ${esc(o.err)} — 스캔본(이미지) PDF는 텍스트가 없어 검사 불가입니다.</div></div>`;
+    const rows=o.res.map(r=>{ const c=r.status==='ok'?'ok':r.status==='bad'?'warn':'etc'; const ic=r.status==='ok'?'🟢':r.status==='bad'?'🔴':'⚪'; const tag=r.status==='ok'?'일치':r.status==='bad'?'문서값 '+esc(r.doc):'문서에 없음'; return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line2);font-size:12.8px"><span style="width:14px">${ic}</span><span class="muted" style="width:82px">${r.label}</span><b style="flex:1">${esc(r.value)}${r.unit||''}</b><span class="pill ${c}">${tag}</span></div>`; }).join('');
+    const nb=o.res.filter(x=>x.status==='bad').length;
+    return `<div class="isscard ${nb?'open':'done'}"><div class="ih"><b>📄 ${esc(o.name)}</b>${nb?`<span class="pill warn">🔴 불일치 ${nb}</span>`:'<span class="pill ok">이상 없음</span>'}</div>${rows}</div>`;
+  }).join('');
+}
+async function pickVerifyFolder(){ if(!window.showDirectoryPicker){ toast('이 브라우저는 폴더 선택 미지원 — 아래 [PDF 파일 직접 선택]을 쓰세요'); return; }
+  let dir; try{ dir=await window.showDirectoryPicker(); }catch(e){ return; }
+  const files=[]; for await(const entry of dir.values()){ if(entry.kind==='file'&&/\.pdf$/i.test(entry.name)){ files.push(await entry.getFile()); } }
+  if(!files.length){ toast('폴더에 PDF가 없습니다'); return; } verifyFiles(files);
+}
+function onVerifyFiles(e){ verifyFiles(e.target.files); e.target.value=''; }
 
 /* ════════════ 안전관리 ════════════ */
 function renderPresets(){ const g=document.getElementById('preset-grid'); if(!presets.length){ g.innerHTML='<div class="empty">프리셋이 없습니다.</div>'; } else g.innerHTML=presets.map(p=>`<div class="preset"><div><span class="pill ${catClass(p.category)}">${p.category}</span></div><h4>${esc(p.title)}</h4><div class="body">${esc(p.body)}</div>${p.sched&&p.sched.on?`<div class="sched">⏰ ${schedLabel(p.sched)} 자동발송</div>`:''}<div class="foot" style="margin-top:10px"><button class="btn sm" onclick="openPreset('${p.id}')">수정</button><button class="btn sm primary" onclick="quickSend('${p.id}')">이 안내 보내기</button></div></div>`).join(''); refreshBadges(); }
