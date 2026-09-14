@@ -397,17 +397,16 @@ function resizeCanvas(file){ return new Promise(res=>{ const r=new FileReader();
 const DB={
   async loadAll(){
     if(MODE==='local') return loadLocal();
-    const [S,I,N,P,L,A,PR,SET]=await Promise.all([
-      sb.from('sites').select('*').order('created_at'),
-      sb.from('issues').select('*').order('date',{ascending:false}),
-      sb.from('inspections').select('*').order('date',{ascending:false}),
-      sb.from('presets').select('*').order('created_at'),
-      sb.from('send_logs').select('*').order('created_at',{ascending:false}).limit(400),
-      sb.from('acknowledgments').select('*'),
-      sb.from('profiles').select('*'),
-      sb.from('app_settings').select('*').eq('id',1).maybeSingle(),
+    const [S,I,N,P,L,A,SET]=await Promise.all([
+      sb.from('sc_sites').select('*').order('created_at'),
+      sb.from('sc_issues').select('*').order('date',{ascending:false}),
+      sb.from('sc_inspections').select('*').order('date',{ascending:false}),
+      sb.from('sc_presets').select('*').order('created_at'),
+      sb.from('sc_send_logs').select('*').order('created_at',{ascending:false}).limit(400),
+      sb.from('sc_acks').select('*'),
+      sb.from('sc_app_settings').select('*').eq('id',1).maybeSingle(),
     ]);
-    profiles=PR.data||[];
+    profiles=[];
     settings=(SET.data&&SET.data.data)||{auto:false,type:'auto',id:'',key:'',sender:''};
     const by=(arr,k)=>{ const m={}; (arr||[]).forEach(x=>{ (m[x[k]]=m[x[k]]||[]).push(x); }); return m; };
     const iB=by(I.data,'site_id'), nB=by(N.data,'site_id'), aB=by(A.data,'site_id');
@@ -416,30 +415,30 @@ const DB={
     logs=(L.data||[]).map(l=>({stamp:fmtStamp(l.created_at),category:l.category,title:l.title,name:l.name,site:l.site_name,phone:l.phone,type:l.msg_type,status:l.status}));
   },
   async saveSite(o){ if(MODE==='local'){ if(!o.id)o.id=uid(); const i=sites.findIndex(x=>x.id===o.id); if(i>=0)sites[i]={...sites[i],...o}; else sites.push({issues:[],inspections:[],acks:[],permits:[],...o}); persistLocal(); return o.id; }
-    const row=siteToRow(o); if(o.id){ await sb.from('sites').update(row).eq('id',o.id); return o.id; } const {data}=await sb.from('sites').insert(row).select('id').single(); return data&&data.id; },
-  async deleteSite(id){ if(MODE==='local'){ sites=sites.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sites').delete().eq('id',id); },
+    const row=siteToRow(o); if(o.id){ await sb.from('sc_sites').update(row).eq('id',o.id); return o.id; } const {data}=await sb.from('sc_sites').insert(row).select('id').single(); return data&&data.id; },
+  async deleteSite(id){ if(MODE==='local'){ sites=sites.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_sites').delete().eq('id',id); },
   async saveIssue(siteId,o){ if(MODE==='local'){ const s=getSite(siteId); if(!s.issues)s.issues=[]; if(!o.id)o.id=uid(); const i=s.issues.findIndex(x=>x.id===o.id); if(i>=0)s.issues[i]=o; else s.issues.unshift(o); persistLocal(); return; }
-    const row=issueToRow(o); row.site_id=siteId; if(o.id) await sb.from('issues').update(row).eq('id',o.id); else await sb.from('issues').insert(row); },
-  async deleteIssue(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.issues=(s.issues||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('issues').delete().eq('id',id); },
+    const row=issueToRow(o); row.site_id=siteId; if(o.id) await sb.from('sc_issues').update(row).eq('id',o.id); else await sb.from('sc_issues').insert(row); },
+  async deleteIssue(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.issues=(s.issues||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_issues').delete().eq('id',id); },
   async saveInspection(siteId,o){ if(MODE==='local'){ const s=getSite(siteId); if(!s.inspections)s.inspections=[]; if(!o.id)o.id=uid(); const i=s.inspections.findIndex(x=>x.id===o.id); if(i>=0)s.inspections[i]=o; else s.inspections.unshift(o); persistLocal(); return; }
-    const row=inspToRow(o); row.site_id=siteId; if(o.id) await sb.from('inspections').update(row).eq('id',o.id); else await sb.from('inspections').insert(row); },
-  async deleteInspection(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.inspections=(s.inspections||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('inspections').delete().eq('id',id); },
+    const row=inspToRow(o); row.site_id=siteId; if(o.id) await sb.from('sc_inspections').update(row).eq('id',o.id); else await sb.from('sc_inspections').insert(row); },
+  async deleteInspection(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.inspections=(s.inspections||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_inspections').delete().eq('id',id); },
   async savePreset(o){ if(MODE==='local'){ if(!o.id)o.id=uid(); const i=presets.findIndex(x=>x.id===o.id); if(i>=0)presets[i]=o; else presets.push(o); persistLocal(); return; }
-    const row={category:o.category,title:o.title,body:o.body,sched:o.sched}; if(o.id) await sb.from('presets').update(row).eq('id',o.id); else await sb.from('presets').insert(row); },
-  async deletePreset(id){ if(MODE==='local'){ presets=presets.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('presets').delete().eq('id',id); },
+    const row={category:o.category,title:o.title,body:o.body,sched:o.sched}; if(o.id) await sb.from('sc_presets').update(row).eq('id',o.id); else await sb.from('sc_presets').insert(row); },
+  async deletePreset(id){ if(MODE==='local'){ presets=presets.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_presets').delete().eq('id',id); },
   async addLog(e){ if(MODE==='local'){ logs.unshift({stamp:nowStamp(),...e}); logs=logs.slice(0,400); persistLocal(); return; }
-    await sb.from('send_logs').insert({category:e.category,title:e.title,name:e.name,site_name:e.site,phone:e.phone,msg_type:e.type,status:e.status,sent_by:me?me.id:null}); },
-  async clearLogs(){ if(MODE==='local'){ logs=[]; persistLocal(); return; } await sb.from('send_logs').delete().neq('id','00000000-0000-0000-0000-000000000000'); },
-  async saveSettingsRemote(){ if(MODE==='local'){ persistLocal(); return; } await sb.from('app_settings').update({data:settings}).eq('id',1); },
+    await sb.from('sc_send_logs').insert({category:e.category,title:e.title,name:e.name,site_name:e.site,phone:e.phone,msg_type:e.type,status:e.status,sent_by:me?me.id:null}); },
+  async clearLogs(){ if(MODE==='local'){ logs=[]; persistLocal(); return; } await sb.from('sc_send_logs').delete().neq('id','00000000-0000-0000-0000-000000000000'); },
+  async saveSettingsRemote(){ if(MODE==='local'){ persistLocal(); return; } await sb.from('sc_app_settings').update({data:settings}).eq('id',1); },
   async uploadPhoto(file){ const c=await resizeCanvas(file); if(!c) return null; if(MODE==='local') return c.toDataURL('image/jpeg',0.6);
-    const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.6)); const path=`${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`; const {error}=await sb.storage.from('photos').upload(path,blob,{contentType:'image/jpeg'}); if(error){ toast('사진 업로드 실패: '+error.message); return null; } return sb.storage.from('photos').getPublicUrl(path).data.publicUrl; },
-  async ackConfirm(siteId,ver){ if(MODE==='cloud'){ await sb.from('acknowledgments').insert({site_id:siteId,user_id:me.id,ack_version:ver}); } },
-  async ackCancel(siteId,ver){ if(MODE==='cloud'){ await sb.from('acknowledgments').delete().eq('site_id',siteId).eq('user_id',me.id).eq('ack_version',ver); } },
-  async ackReset(siteId){ const s=getSite(siteId); if(MODE==='local'){ (s.acks||[]).forEach(a=>a.at=''); persistLocal(); return; } await sb.from('sites').update({ack_version:(s.ackVersion||1)+1}).eq('id',siteId); },
+    const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.6)); const path=`${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`; const {error}=await sb.storage.from('sc-photos').upload(path,blob,{contentType:'image/jpeg'}); if(error){ toast('사진 업로드 실패: '+error.message); return null; } return sb.storage.from('sc-photos').getPublicUrl(path).data.publicUrl; },
+  async ackConfirm(siteId,ver){ if(MODE==='cloud'){ await sb.from('sc_acks').insert({site_id:siteId,user_id:me.id,email:me.email,ack_version:ver}); } },
+  async ackCancel(siteId,ver){ if(MODE==='cloud'){ await sb.from('sc_acks').delete().eq('site_id',siteId).eq('user_id',me.id).eq('ack_version',ver); } },
+  async ackReset(siteId){ const s=getSite(siteId); if(MODE==='local'){ (s.acks||[]).forEach(a=>a.at=''); persistLocal(); return; } await sb.from('sc_sites').update({ack_version:(s.ackVersion||1)+1}).eq('id',siteId); },
 };
 /* row 매핑 */
-function siteFromRow(r){ return {id:r.id,name:r.name,owner:r.owner,type:r.type,cap:r.cap,loc:r.loc,mname:r.mname,mphone:r.mphone,cname:r.cname,cphone:r.cphone,start:r.start_date,due:r.due_date,stage:r.stage,progress:r.progress,status:r.status,note:r.note,moduleModel:r.module_model,moduleQty:r.module_qty,inverterModel:r.inverter_model,inverterQty:r.inverter_qty,builder:r.builder,civil:r.civil,processChart:r.process_chart,permits:r.permits||[],ackVersion:r.ack_version||1}; }
-function siteToRow(o){ return {name:o.name,owner:o.owner,type:o.type,cap:o.cap,loc:o.loc,mname:o.mname,mphone:o.mphone,cname:o.cname,cphone:o.cphone,start_date:o.start||null,due_date:o.due||null,stage:o.stage,progress:o.progress,status:o.status,note:o.note,module_model:o.moduleModel,module_qty:o.moduleQty,inverter_model:o.inverterModel,inverter_qty:o.inverterQty,builder:o.builder,civil:o.civil,process_chart:o.processChart,permits:o.permits||[]}; }
+function siteFromRow(r){ return {id:r.id,name:r.name,owner:r.owner,type:r.type,cap:r.cap,loc:r.loc,mname:r.mname,mphone:r.mphone,cname:r.cname,cphone:r.cphone,start:r.start_date,due:r.due_date,stage:r.stage,progress:r.progress,status:r.status,note:r.note,moduleModel:r.module_model,moduleQty:r.module_qty,inverterModel:r.inverter_model,inverterQty:r.inverter_qty,builder:r.builder,civil:r.civil,processChart:r.process_chart,permits:r.permits||[],acks:r.acks||[],ackVersion:r.ack_version||1}; }
+function siteToRow(o){ return {name:o.name,owner:o.owner,type:o.type,cap:o.cap,loc:o.loc,mname:o.mname,mphone:o.mphone,cname:o.cname,cphone:o.cphone,start_date:o.start||null,due_date:o.due||null,stage:o.stage,progress:o.progress,status:o.status,note:o.note,module_model:o.moduleModel,module_qty:o.moduleQty,inverter_model:o.inverterModel,inverter_qty:o.inverterQty,builder:o.builder,civil:o.civil,process_chart:o.processChart,permits:o.permits||[],acks:o.acks||[]}; }
 function issueFromRow(r){ return {id:r.id,date:r.date,cat:r.cat,title:r.title,content:r.content,reporter:r.reporter,actionby:r.actionby,actiondate:r.actiondate,action:r.action,status:r.status,resolvedate:r.resolvedate,resolution:r.resolution,photos:r.photos||[]}; }
 function issueToRow(o){ return {date:o.date||null,cat:o.cat,title:o.title,content:o.content,reporter:o.reporter,actionby:o.actionby,actiondate:o.actiondate||null,action:o.action,status:o.status,resolvedate:o.resolvedate||null,resolution:o.resolution,photos:o.photos||[]}; }
 function inspFromRow(r){ return {id:r.id,date:r.date,inspector:r.inspector,result:r.result,note:r.note,photos:r.photos||[]}; }
@@ -472,7 +471,8 @@ function seedLocal(){
 /* 확인(ack) 정규화 */
 function acksFor(s){
   if(MODE==='local') return (s.acks||[]).map((a,i)=>({name:a.name,role:a.role,at:a.at,idx:i,canToggle:true,self:true}));
-  return (profiles||[]).map(p=>{ const r=(s._ackRows||[]).find(x=>x.user_id===p.id&&x.ack_version===s.ackVersion); return {name:p.name,role:p.role,at:r?fmtStamp(r.acknowledged_at):'',user_id:p.id,canToggle:!!(me&&me.id===p.id),self:!!(me&&me.id===p.id)}; });
+  const roster=s.acks||[];
+  return roster.map((a,i)=>{ const r=(s._ackRows||[]).find(x=>(x.email||'').toLowerCase()===(a.email||'').toLowerCase()&&x.ack_version===(s.ackVersion||1)); const self=!!(me&&me.email&&me.email===(a.email||'').toLowerCase()); return {name:a.name,role:a.role||a.email,email:a.email,at:r?fmtStamp(r.acknowledged_at):'',idx:i,canToggle:self,self}; });
 }
 
 /* ════════════ 인증 ════════════ */
@@ -483,12 +483,6 @@ async function doLogin(){
   if(error){ msg.style.color='var(--red)'; msg.textContent='로그인 실패: '+error.message; }
 }
 async function doLogout(){ if(sb) await sb.auth.signOut(); location.reload(); }
-async function ensureProfile(user){
-  const {data}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
-  if(data) return data;
-  const name=(user.user_metadata&&user.user_metadata.name)||user.email.split('@')[0];
-  await sb.from('profiles').insert({id:user.id,name}); return {id:user.id,name,role:'담당자'};
-}
 
 /* ════════════ 부팅 ════════════ */
 async function boot(){
@@ -503,7 +497,7 @@ async function boot(){
   setInterval(autoCheck,15000);
 }
 async function afterLogin(user){
-  const prof=await ensureProfile(user); me={id:user.id,name:prof.name,role:prof.role};
+  me={id:user.id, email:(user.email||'').toLowerCase(), name:(user.email||'사용자').split('@')[0]};
   document.getElementById('login').classList.remove('show');
   await DB.loadAll(); showApp(); renderAll(); subscribeRealtime();
 }
@@ -517,7 +511,9 @@ function showApp(){
 let rtTimer=null;
 function subscribeRealtime(){
   if(MODE!=='cloud') return;
-  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },600); }).subscribe();
+  const ch=sb.channel('rt-sc');
+  ['sc_sites','sc_issues','sc_inspections','sc_acks','sc_presets','sc_send_logs'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },700); }));
+  ch.subscribe();
 }
 async function reload(){ await DB.loadAll(); }
 function rerender(){
@@ -617,11 +613,13 @@ function renderDetailAck(s){
   const acks=acksFor(s); const cur=`${s.status} · ${STAGES[s.stage]||''} 단계 진행 ${s.progress}%`; const open=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
   const allOk=acks.length&&acks.every(a=>a.at);
   const rows=acks.map((a,i)=>{ const btn=a.canToggle?(a.at?`<button class="btn sm" onclick="ackToggle('${s.id}',${i})">취소</button>`:`<button class="btn sm green" onclick="ackToggle('${s.id}',${i})">확인</button>`):(MODE==='cloud'&&!a.at?'<span class="muted" style="font-size:11px">본인만 확인</span>':'');
-    return `<div class="checkline" style="justify-content:space-between"><span><b>${esc(a.name)}</b> ${a.role?`<span class="muted" style="font-size:11.5px">${esc(a.role)}</span>`:''}${a.self?' <span class="pill etc">나</span>':''}</span><span style="display:flex;gap:7px;align-items:center">${a.at?`<span class="pill ok">✅ ${a.at} 확인</span>`:'<span class="pill warn">미확인</span>'}${btn}${MODE==='local'?`<button class="btn sm danger" onclick="ackRemove('${s.id}',${i})">×</button>`:''}</span></div>`; }).join('');
+    return `<div class="checkline" style="justify-content:space-between"><span><b>${esc(a.name)}</b> ${a.role?`<span class="muted" style="font-size:11.5px">${esc(a.role)}</span>`:''}${a.self?' <span class="pill etc">나</span>':''}</span><span style="display:flex;gap:7px;align-items:center">${a.at?`<span class="pill ok">✅ ${a.at} 확인</span>`:'<span class="pill warn">미확인</span>'}${btn}<button class="btn sm danger" onclick="ackRemove('${s.id}',${i})">×</button></span></div>`; }).join('');
   return `<div class="note ${allOk?'blue':''}" style="margin-bottom:14px"><span class="i">${allOk?'✅':'📌'}</span><span><b>확인 대상 현황:</b> ${cur}${open?` · <span style="color:var(--red)">미해결 이슈 ${open}건</span>`:''}<br>관련 담당자들이 위 현황을 <b>인지했음을 의무적으로 확인</b>합니다.${MODE==='cloud'?' (로그인 본인 계정으로만 확인 → 기록에 남음)':''}</span></div>
     <div class="subhdr"><span class="muted" style="font-size:12.5px">확인 ${acks.filter(a=>a.at).length}/${acks.length}</span><button class="btn sm" onclick="ackReset('${s.id}')">🔄 상황 변경 · 전체 재확인 요청</button></div>
     ${rows||'<div class="empty">지정된 담당자가 없습니다.</div>'}
-    ${MODE==='local'?`<div style="display:flex;gap:6px;margin-top:10px"><input class="t" id="ack-new-${s.id}" placeholder="담당자 이름 추가" style="flex:1;padding:7px 10px"><button class="btn sm primary" onclick="ackAdd('${s.id}')">+ 담당자</button></div>`:`<div class="muted" style="font-size:11.5px;margin-top:10px">클라우드 모드: 확인 대상 = 로그인 팀원 계정. Supabase에서 계정을 추가하세요.</div>`}`;
+    ${MODE==='local'
+      ? `<div style="display:flex;gap:6px;margin-top:10px"><input class="t" id="ack-new-${s.id}" placeholder="담당자 이름 추가" style="flex:1;padding:7px 10px"><button class="btn sm primary" onclick="ackAdd('${s.id}')">+ 담당자</button></div>`
+      : `<div style="display:flex;gap:6px;margin-top:10px"><input class="t" id="ack-newname-${s.id}" placeholder="이름" style="flex:1;padding:7px 10px"><input class="t" id="ack-newemail-${s.id}" placeholder="로그인 이메일" style="flex:1.4;padding:7px 10px"><button class="btn sm primary" onclick="ackAdd('${s.id}')">+ 담당자</button></div><div class="muted" style="font-size:11px;margin-top:5px">확인 대상은 <b>로그인 이메일</b>로 지정합니다. 본인 이메일 계정으로 로그인해야 [확인]이 눌립니다.</div>`}`;
 }
 async function ackToggle(id,i){ const s=getSite(id); const a=acksFor(s)[i];
   if(MODE==='local'){ s.acks[i].at=s.acks[i].at?'':nowStamp(); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); return; }
@@ -630,7 +628,10 @@ async function ackToggle(id,i){ const s=getSite(id); const a=acksFor(s)[i];
   await reload(); renderDetail(); renderOverview();
 }
 async function ackReset(id){ await DB.ackReset(id); await reload(); renderDetail(); renderOverview(); toast('전체 재확인을 요청했습니다'); }
-async function ackAdd(id){ const s=getSite(id); const el=document.getElementById('ack-new-'+id); const name=(el&&el.value||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } if(!s.acks)s.acks=[]; s.acks.push({name,role:'',at:''}); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); }
+async function ackAdd(id){ const s=getSite(id); if(!s.acks)s.acks=[];
+  if(MODE==='local'){ const el=document.getElementById('ack-new-'+id); const name=(el&&el.value||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } s.acks.push({name,role:'',at:''}); }
+  else { const nm=(document.getElementById('ack-newname-'+id)||{}).value||''; const em=(document.getElementById('ack-newemail-'+id)||{}).value||''; const name=nm.trim(), email=em.trim().toLowerCase(); if(!name||!email){ toast('이름과 로그인 이메일을 입력하세요'); return; } s.acks.push({name,email}); }
+  await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); }
 async function ackRemove(id,i){ const s=getSite(id); s.acks.splice(i,1); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); }
 function editFromDetail(){ closeModal('detail-modal'); openSite(detailId); }
 function safetyFromDetail(){ const id=detailId; closeModal('detail-modal'); quickSafety(id); }
@@ -670,8 +671,8 @@ async function saveSite(){
     moduleModel:g('s-mmodel').trim(), moduleQty:+g('s-mqty')||0, inverterModel:g('s-imodel').trim(), inverterQty:+g('s-iqty')||0,
     builder:g('s-builder').trim(), civil:g('s-civil').trim(), start:g('s-start'), due:g('s-due'),
     stage:+g('s-stage'), progress:Math.min(100,Math.max(0,+g('s-progress')||0)), status:g('s-status'), note:g('s-note').trim(),
-    processChart:sChart, permits:prev?prev.permits:[], ackVersion:prev?prev.ackVersion:1 };
-  if(MODE==='local'){ o.issues=prev?prev.issues:[]; o.inspections=prev?prev.inspections:[]; o.acks=prev?prev.acks:[]; }
+    processChart:sChart, permits:prev?(prev.permits||[]):[], acks:prev?(prev.acks||[]):[], ackVersion:prev?prev.ackVersion:1 };
+  if(MODE==='local'){ o.issues=prev?prev.issues:[]; o.inspections=prev?prev.inspections:[]; }
   await DB.saveSite(o); await reload(); closeModal('site-modal'); renderOverview(); toast('현장을 저장했습니다',true);
 }
 

@@ -1,14 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
    Supabase 연결 설정
    ───────────────────────────────────────────────────────────────
-   ▸ 아래 두 값을 채우면 → '클라우드 모드'
-       (로그인 / 여러 명 실시간 공유 / 사진 클라우드 저장 / 확인 본인계정)
-   ▸ 비워두면 → '로컬 데모 모드'
-       (이 브라우저에만 저장. 설정 없이 지금 바로 사용 가능)
+   현재 '클라우드 모드' — happysolar 프로젝트에 얹음(sc_* 테이블).
+   상담일지와 같은 프로젝트/계정을 공유합니다(로그인 계정 공용).
+   비우면 '로컬 데모 모드'로 전환됩니다.
 
-   값 얻는 곳: Supabase 프로젝트 → Settings → API
-     - Project URL           → SUPABASE_URL
-     - Project API keys(anon) → SUPABASE_ANON_KEY   (public anon 키, 노출돼도 안전)
+   ※ anon 키는 공개돼도 안전(설계상). 데이터는 sc_* 테이블의 RLS로 보호.
    ═══════════════════════════════════════════════════════════════ */
-window.SUPABASE_URL = "";
-window.SUPABASE_ANON_KEY = "";
+window.SUPABASE_URL = "https://cgthfwlswaohxolgixvv.supabase.co";
+window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNndGhmd2xzd2FvaHhvbGdpeHZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NTE2MjMsImV4cCI6MjEwMzQyNzYyM30.zdd2BQI4UQv8WuFBddYI050r-PWGPSgVmUo53OEGims";
