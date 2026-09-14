@@ -155,7 +155,8 @@
   <button data-mod="overview" class="active">🏠 현황 개요</button>
   <button data-mod="safety">🦺 현장 작업자 안전관리</button>
   <button data-mod="issues">🚩 이슈·점검 <span class="badge" id="b-issues" style="background:var(--line2);border-radius:20px;padding:1px 7px;font-size:11px">0</span></button>
-  <button data-mod="photos" disabled>📸 시공 사진 <span class="soon">준비중</span></button>
+  <button data-mod="photos">📸 시공 사진</button>
+  <button data-mod="audit" id="mod-audit" style="display:none">🧾 로그</button>
   <button data-mod="quality" disabled>📋 품질·검사 <span class="soon">준비중</span></button>
 </nav>
 
@@ -210,6 +211,32 @@
       <div class="subhdr"><h3 style="margin:0;font-size:15px">🔍 최근 현장 점검</h3></div>
       <div style="overflow:auto"><table><thead><tr><th>점검일</th><th>현장</th><th>확인자</th><th>결과</th><th>소견</th><th>사진</th></tr></thead><tbody id="insp-rows"></tbody></table></div>
     </div>
+  </section>
+
+  <!-- 시공 사진·영상 -->
+  <section class="view" id="v-photos">
+    <h2 class="title">시공 사진 · 영상</h2>
+    <p class="desc">현장별 시공 사진·영상을 업로드하고 모아봅니다. 휴대폰이면 카메라가 바로 열립니다.</p>
+    <div class="card pad" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="f" style="margin:0">현장</label>
+      <select class="t" id="photo-site" style="max-width:340px;width:auto" onchange="renderPhotos()"></select>
+      <label class="uploadbtn">📷 사진·영상 업로드<input type="file" accept="image/*,video/*" capture="environment" multiple style="display:none" onchange="onMediaPick(event)"></label>
+      <span class="muted" id="photo-hint" style="font-size:11.5px"></span>
+    </div>
+    <div id="photo-grid" class="sgrid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+  </section>
+
+  <!-- 감사 로그 (관리자 전용) -->
+  <section class="view" id="v-audit">
+    <h2 class="title">감사 로그 <span class="pill etc">관리자 전용</span></h2>
+    <p class="desc">언제·어떤 계정이·무엇을 했는지 기록입니다. 사고 발생 시 원인 계정 추적용.</p>
+    <div class="card pad" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input class="t" id="audit-q" placeholder="검색 (계정·대상·내용)" style="max-width:280px;width:auto" oninput="renderAudit()">
+      <select class="t" id="audit-act" style="max-width:150px;width:auto" onchange="renderAudit()"><option value="">전체 행동</option><option value="login">로그인</option><option value="create">생성</option><option value="update">수정</option><option value="delete">삭제</option><option value="send">발송</option><option value="ack">확인</option></select>
+      <button class="btn sm" onclick="loadAuditAndRender()">새로고침</button>
+      <span class="muted" id="audit-count" style="font-size:11.5px"></span>
+    </div>
+    <div class="card" style="overflow:hidden"><table><thead><tr><th style="width:135px">시각</th><th>계정</th><th>행동</th><th>대상</th><th>내용</th></tr></thead><tbody id="audit-rows"></tbody></table></div>
   </section>
 
   <!-- 안전 홈 -->
@@ -399,7 +426,7 @@ function resizeCanvas(file){ return new Promise(res=>{ const r=new FileReader();
 const DB={
   async loadAll(){
     if(MODE==='local') return loadLocal();
-    const [S,I,N,P,L,A,SET]=await Promise.all([
+    const [S,I,N,P,L,A,SET,M]=await Promise.all([
       sb.from('sc_sites').select('*').order('created_at'),
       sb.from('sc_issues').select('*').order('date',{ascending:false}),
       sb.from('sc_inspections').select('*').order('date',{ascending:false}),
@@ -407,12 +434,13 @@ const DB={
       sb.from('sc_send_logs').select('*').order('created_at',{ascending:false}).limit(400),
       sb.from('sc_acks').select('*'),
       sb.from('sc_app_settings').select('*').eq('id',1).maybeSingle(),
+      sb.from('sc_media').select('*').order('created_at',{ascending:false}),
     ]);
     profiles=[];
     settings=(SET.data&&SET.data.data)||{auto:false,type:'auto',id:'',key:'',sender:''};
     const by=(arr,k)=>{ const m={}; (arr||[]).forEach(x=>{ (m[x[k]]=m[x[k]]||[]).push(x); }); return m; };
-    const iB=by(I.data,'site_id'), nB=by(N.data,'site_id'), aB=by(A.data,'site_id');
-    sites=(S.data||[]).map(r=>({ ...siteFromRow(r), issues:(iB[r.id]||[]).map(issueFromRow), inspections:(nB[r.id]||[]).map(inspFromRow), _ackRows:aB[r.id]||[] }));
+    const iB=by(I.data,'site_id'), nB=by(N.data,'site_id'), aB=by(A.data,'site_id'), mB=by(M.data,'site_id');
+    sites=(S.data||[]).map(r=>({ ...siteFromRow(r), issues:(iB[r.id]||[]).map(issueFromRow), inspections:(nB[r.id]||[]).map(inspFromRow), _ackRows:aB[r.id]||[], media:(mB[r.id]||[]).map(mediaFromRow) }));
     presets=(P.data||[]).map(presetFromRow);
     logs=(L.data||[]).map(l=>({stamp:fmtStamp(l.created_at),category:l.category,title:l.title,name:l.name,site:l.site_name,phone:l.phone,type:l.msg_type,status:l.status}));
   },
@@ -437,7 +465,20 @@ const DB={
   async ackConfirm(siteId,ver){ if(MODE==='cloud'){ await sb.from('sc_acks').insert({site_id:siteId,user_id:me.id,email:me.email,ack_version:ver}); } },
   async ackCancel(siteId,ver){ if(MODE==='cloud'){ await sb.from('sc_acks').delete().eq('site_id',siteId).eq('user_id',me.id).eq('ack_version',ver); } },
   async ackReset(siteId){ const s=getSite(siteId); if(MODE==='local'){ (s.acks||[]).forEach(a=>a.at=''); persistLocal(); return; } await sb.from('sc_sites').update({ack_version:(s.ackVersion||1)+1}).eq('id',siteId); },
+  async uploadMediaFile(file){
+    const isImg=file.type.startsWith('image/');
+    if(MODE==='local'){ if(!isImg){ toast('로컬 모드에선 영상 저장이 안 됩니다 (클라우드 모드에서 가능)'); return null; } const c=await resizeCanvas(file); return c?{kind:'image',url:c.toDataURL('image/jpeg',0.6),name:file.name,mime:'image/jpeg',size:0}:null; }
+    let blob=file, mime=file.type||'application/octet-stream', name=file.name, kind=isImg?'image':'video';
+    if(isImg){ const c=await resizeCanvas(file); if(!c) return null; blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.6)); mime='image/jpeg'; }
+    const ext=(name.split('.').pop()||'bin').toLowerCase(); const path=`${Date.now()}_${Math.random().toString(36).slice(2,8)}.${isImg?'jpg':ext}`;
+    const {error}=await sb.storage.from('sc-photos').upload(path,blob,{contentType:mime}); if(error){ toast('업로드 실패: '+error.message); return null; }
+    return {kind,url:sb.storage.from('sc-photos').getPublicUrl(path).data.publicUrl,name,mime,size:file.size||0};
+  },
+  async saveMedia(siteId,o){ if(MODE==='local'){ const s=getSite(siteId); if(!s.media)s.media=[]; s.media.unshift({id:uid(),at:nowStamp(),uploader:'로컬',...o}); persistLocal(); return; } await sb.from('sc_media').insert({site_id:siteId,kind:o.kind,url:o.url,name:o.name,mime:o.mime,size:o.size,uploaded_by:me?me.id:null,uploader:me?me.name:null}); },
+  async deleteMedia(siteId,id){ if(MODE==='local'){ const s=getSite(siteId); s.media=(s.media||[]).filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_media').delete().eq('id',id); },
 };
+function mediaFromRow(r){ return {id:r.id,kind:r.kind,url:r.url,name:r.name,mime:r.mime,size:r.size,uploader:r.uploader,at:fmtStamp(r.created_at)}; }
+function audit(action,entity,name,detail){ if(MODE!=='cloud'||!me||!me.id) return; sb.from('sc_audit').insert({user_id:me.id,email:me.email,role:me.role||null,action,entity,entity_name:name||null,detail:detail||null}).then(function(){},function(){}); }
 /* row 매핑 */
 function siteFromRow(r){ return {id:r.id,name:r.name,owner:r.owner,type:r.type,cap:r.cap,loc:r.loc,mname:r.mname,mphone:r.mphone,cname:r.cname,cphone:r.cphone,start:r.start_date,due:r.due_date,stage:r.stage,progress:r.progress,status:r.status,note:r.note,moduleModel:r.module_model,moduleQty:r.module_qty,inverterModel:r.inverter_model,inverterQty:r.inverter_qty,builder:r.builder,civil:r.civil,processChart:r.process_chart,permits:r.permits||[],acks:r.acks||[],ackVersion:r.ack_version||1}; }
 function siteToRow(o){ return {name:o.name,owner:o.owner,type:o.type,cap:o.cap,loc:o.loc,mname:o.mname,mphone:o.mphone,cname:o.cname,cphone:o.cphone,start_date:o.start||null,due_date:o.due||null,stage:o.stage,progress:o.progress,status:o.status,note:o.note,module_model:o.moduleModel,module_qty:o.moduleQty,inverter_model:o.inverterModel,inverter_qty:o.inverterQty,builder:o.builder,civil:o.civil,process_chart:o.processChart,permits:o.permits||[],acks:o.acks||[]}; }
@@ -500,22 +541,25 @@ async function boot(){
   setInterval(autoCheck,15000);
 }
 async function afterLogin(user){
-  me={id:user.id, email:(user.email||'').toLowerCase(), name:(user.email||'사용자').split('@')[0]};
+  me={id:user.id, email:(user.email||'').toLowerCase(), name:(user.email||'사용자').split('@')[0], role:null};
+  try{ const {data}=await sb.from('profiles').select('role').eq('id',user.id).maybeSingle(); if(data) me.role=data.role; }catch(e){}
   document.getElementById('login').classList.remove('show');
   await DB.loadAll(); showApp(); renderAll(); subscribeRealtime();
+  audit('login','auth',me.email,'로그인');
 }
 function showApp(){
   document.getElementById('app').style.display='block';
   const mp=document.getElementById('modepill'); mp.className='modepill'+(MODE==='cloud'?' cloud':'');
   document.getElementById('mode-txt').textContent=MODE==='cloud'?'클라우드 모드':'로컬 모드';
-  document.getElementById('whoami').textContent=me?('👤 '+me.name):'';
+  document.getElementById('whoami').textContent=me?('👤 '+me.name+(me.role==='admin'?' (관리자)':'')):'';
   document.getElementById('logout-btn').style.display=MODE==='cloud'?'inline-flex':'none';
+  document.getElementById('mod-audit').style.display=(me&&me.role==='admin')?'flex':'none';
 }
 let rtTimer=null;
 function subscribeRealtime(){
   if(MODE!=='cloud') return;
   const ch=sb.channel('rt-sc');
-  ['sc_sites','sc_issues','sc_inspections','sc_acks','sc_presets','sc_send_logs'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },700); }));
+  ['sc_sites','sc_issues','sc_inspections','sc_acks','sc_presets','sc_send_logs','sc_media'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },700); }));
   ch.subscribe();
 }
 async function reload(){ await DB.loadAll(); }
@@ -534,6 +578,8 @@ document.querySelectorAll('#mods button').forEach(b=>{ if(b.disabled) return; b.
   if(activeMod==='overview'){ showView('v-overview'); renderOverview(); }
   else if(activeMod==='safety'){ showSub('shome'); }
   else if(activeMod==='issues'){ showView('v-issues'); renderIssues(); }
+  else if(activeMod==='photos'){ showView('v-photos'); renderPhotos(); }
+  else if(activeMod==='audit'){ showView('v-audit'); loadAuditAndRender(); }
 };});
 document.querySelectorAll('#subs button').forEach(b=>{ b.onclick=()=>showSub(b.dataset.sub); });
 function showView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
@@ -628,9 +674,10 @@ async function ackToggle(id,i){ const s=getSite(id); const a=acksFor(s)[i];
   if(MODE==='local'){ s.acks[i].at=s.acks[i].at?'':nowStamp(); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); return; }
   if(!a.canToggle){ toast('본인 계정으로만 확인할 수 있습니다'); return; }
   if(a.at) await DB.ackCancel(id,s.ackVersion); else await DB.ackConfirm(id,s.ackVersion);
+  audit('ack','site',s.name, a.at?'확인 취소':'현황 인지 확인');
   await reload(); renderDetail(); renderOverview();
 }
-async function ackReset(id){ await DB.ackReset(id); await reload(); renderDetail(); renderOverview(); toast('전체 재확인을 요청했습니다'); }
+async function ackReset(id){ const nm=(getSite(id)||{}).name; await DB.ackReset(id); audit('update','site',nm,'전체 재확인 요청'); await reload(); renderDetail(); renderOverview(); toast('전체 재확인을 요청했습니다'); }
 async function ackAdd(id){ const s=getSite(id); if(!s.acks)s.acks=[];
   if(MODE==='local'){ const el=document.getElementById('ack-new-'+id); const name=(el&&el.value||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } s.acks.push({name,role:'',at:''}); }
   else { const nm=(document.getElementById('ack-newname-'+id)||{}).value||''; const em=(document.getElementById('ack-newemail-'+id)||{}).value||''; const name=nm.trim(), email=em.trim().toLowerCase(); if(!name||!email){ toast('이름과 로그인 이메일을 입력하세요'); return; } s.acks.push({name,email}); }
@@ -638,7 +685,7 @@ async function ackAdd(id){ const s=getSite(id); if(!s.acks)s.acks=[];
 async function ackRemove(id,i){ const s=getSite(id); s.acks.splice(i,1); await DB.saveSite(s); await reload(); renderDetail(); renderOverview(); }
 function editFromDetail(){ closeModal('detail-modal'); openSite(detailId); }
 function safetyFromDetail(){ const id=detailId; closeModal('detail-modal'); quickSafety(id); }
-async function deleteSiteFromDetail(){ if(confirm('이 현장을 삭제할까요?')){ await DB.deleteSite(detailId); await reload(); closeModal('detail-modal'); renderOverview(); toast('현장을 삭제했습니다'); } }
+async function deleteSiteFromDetail(){ if(confirm('이 현장을 삭제할까요?')){ const nm=(getSite(detailId)||{}).name; await DB.deleteSite(detailId); audit('delete','site',nm); await reload(); closeModal('detail-modal'); renderOverview(); toast('현장을 삭제했습니다'); } }
 
 /* ════════════ 사진 / 라이트박스 ════════════ */
 let iPhotos=[], nPhotos=[], sChart='';
@@ -676,7 +723,7 @@ async function saveSite(){
     stage:+g('s-stage'), progress:Math.min(100,Math.max(0,+g('s-progress')||0)), status:g('s-status'), note:g('s-note').trim(),
     processChart:sChart, permits:prev?(prev.permits||[]):[], acks:prev?(prev.acks||[]):[], ackVersion:prev?prev.ackVersion:1 };
   if(MODE==='local'){ o.issues=prev?prev.issues:[]; o.inspections=prev?prev.inspections:[]; }
-  await DB.saveSite(o); await reload(); closeModal('site-modal'); renderOverview(); toast('현장을 저장했습니다',true);
+  await DB.saveSite(o); audit(sid?'update':'create','site',name); await reload(); closeModal('site-modal'); renderOverview(); toast('현장을 저장했습니다',true);
 }
 
 /* ════════════ 이슈 CRUD ════════════ */
@@ -692,9 +739,9 @@ function openIssue(siteId,issueId){ const s=getSite(siteId), iss=issueId?(s.issu
 }
 async function saveIssue(){ const g=id=>document.getElementById(id).value; const siteId=g('i-site-sel'); if(!getSite(siteId)){ toast('현장을 선택하세요'); return; } const title=g('i-title').trim(); if(!title){ toast('제목을 입력하세요'); return; }
   const o={ id:g('i-id')||undefined, date:g('i-date'), cat:g('i-cat'), title, content:g('i-content').trim(), reporter:g('i-reporter').trim(), actionby:g('i-actionby').trim(), actiondate:g('i-actiondate'), action:g('i-action').trim(), status:g('i-status'), resolvedate:g('i-resolvedate'), resolution:g('i-resolution').trim(), photos:[...iPhotos] };
-  await DB.saveIssue(siteId,o); await reload(); closeModal('issue-modal'); afterChange(siteId,'이슈'); toast('이슈를 저장했습니다',true);
+  await DB.saveIssue(siteId,o); audit(o.id?'update':'create','issue',title+' @ '+((getSite(siteId)||{}).name||'')); await reload(); closeModal('issue-modal'); afterChange(siteId,'이슈'); toast('이슈를 저장했습니다',true);
 }
-async function deleteIssue(){ const id=document.getElementById('i-id').value, siteId=document.getElementById('i-site-sel').value; await DB.deleteIssue(siteId,id); await reload(); closeModal('issue-modal'); afterChange(detailId,'이슈'); toast('이슈를 삭제했습니다'); }
+async function deleteIssue(){ const id=document.getElementById('i-id').value, siteId=document.getElementById('i-site-sel').value; await DB.deleteIssue(siteId,id); audit('delete','issue',(getSite(siteId)||{}).name||''); await reload(); closeModal('issue-modal'); afterChange(detailId,'이슈'); toast('이슈를 삭제했습니다'); }
 
 /* ════════════ 점검 CRUD ════════════ */
 function openInspection(siteId,inspId){ const s=getSite(siteId), n=inspId?(s.inspections||[]).find(x=>x.id===inspId):null;
@@ -706,9 +753,9 @@ function openInspection(siteId,inspId){ const s=getSite(siteId), n=inspId?(s.ins
 }
 async function saveInspection(){ const g=id=>document.getElementById(id).value; const siteId=g('n-site-sel'); if(!getSite(siteId)){ toast('현장을 선택하세요'); return; }
   const o={ id:g('n-id')||undefined, date:g('n-date'), inspector:g('n-inspector').trim(), result:g('n-result'), note:g('n-note').trim(), photos:[...nPhotos] };
-  await DB.saveInspection(siteId,o); await reload(); closeModal('insp-modal'); afterChange(siteId,'점검'); toast('점검 기록을 저장했습니다',true);
+  await DB.saveInspection(siteId,o); audit(o.id?'update':'create','inspection',((getSite(siteId)||{}).name||'')+' 점검·'+o.result); await reload(); closeModal('insp-modal'); afterChange(siteId,'점검'); toast('점검 기록을 저장했습니다',true);
 }
-async function deleteInspection(){ const id=document.getElementById('n-id').value, siteId=document.getElementById('n-site-sel').value; await DB.deleteInspection(siteId,id); await reload(); closeModal('insp-modal'); afterChange(detailId,'점검'); toast('점검 기록을 삭제했습니다'); }
+async function deleteInspection(){ const id=document.getElementById('n-id').value, siteId=document.getElementById('n-site-sel').value; await DB.deleteInspection(siteId,id); audit('delete','inspection',(getSite(siteId)||{}).name||''); await reload(); closeModal('insp-modal'); afterChange(detailId,'점검'); toast('점검 기록을 삭제했습니다'); }
 
 function afterChange(siteId,tab){ if(detailId&&document.getElementById('detail-modal').classList.contains('open')){ if(siteId===detailId&&tab)detailTab=tab; renderDetail(); } renderOverview(); if(activeMod==='issues')renderIssues(); }
 
@@ -724,6 +771,47 @@ function renderIssues(){
   document.getElementById('insp-rows').innerHTML=ir.length?ir.map(n=>`<tr style="cursor:pointer" onclick="openDetail('${n.siteId}');setTimeout(function(){setDetailTab('점검')},30)"><td class="muted">${n.date||'—'}</td><td><b>${esc(n.site)}</b></td><td>${esc(n.inspector)||'—'}</td><td><span class="pill ${n.result==='문제 발견'?'warn':'ok'}">${n.result}</span></td><td class="muted">${esc(n.note).slice(0,40)}</td><td class="muted">${(n.photos||[]).length?'📷 '+n.photos.length:'—'}</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">점검 기록이 없습니다.</div></td></tr>';
 }
 
+/* ════════════ 시공 사진·영상 ════════════ */
+function renderPhotos(){
+  const sel=document.getElementById('photo-site'); const cur=sel.value;
+  sel.innerHTML=sites.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  if(cur&&sites.some(s=>s.id===cur)) sel.value=cur; else if(sites[0]) sel.value=sites[0].id;
+  const s=getSite(sel.value), grid=document.getElementById('photo-grid');
+  document.getElementById('photo-hint').textContent = MODE==='local'?'로컬 모드: 사진만 저장(영상은 클라우드 모드에서)':'';
+  if(!s){ grid.innerHTML='<div class="empty">현장을 먼저 추가하세요.</div>'; return; }
+  const media=s.media||[];
+  if(!media.length){ grid.innerHTML='<div class="empty">업로드된 사진·영상이 없습니다. 위 [사진·영상 업로드]로 추가하세요.</div>'; return; }
+  grid.innerHTML=media.map(m=>`<div class="scard" style="padding:10px;gap:8px;cursor:default">
+    ${m.kind==='video'?`<video src="${m.url}" controls preload="metadata" style="width:100%;border-radius:10px;background:#000;max-height:220px"></video>`:`<img src="${m.url}" onclick="openImg(this.src)" style="width:100%;border-radius:10px;object-fit:cover;max-height:220px;cursor:pointer">`}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+      <span class="muted" style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.kind==='video'?'🎬':'🖼'} ${esc(m.name||'')} · ${esc(m.uploader||'')} ${m.at||''}</span>
+      <button class="btn sm danger" onclick="removeMedia('${s.id}','${m.id}')">삭제</button>
+    </div></div>`).join('');
+}
+async function onMediaPick(e){ const files=[...e.target.files]; const s=getSite(document.getElementById('photo-site').value); if(!s){ toast('현장을 선택하세요'); return; }
+  let ok=0; toast('업로드 중…'); for(const f of files){ const o=await DB.uploadMediaFile(f); if(o){ await DB.saveMedia(s.id,o); audit('create','media',(o.name||'')+' @ '+s.name); ok++; } } e.target.value='';
+  await reload(); renderPhotos(); toast(ok?`${ok}개 업로드 완료`:'업로드된 파일 없음', ok>0);
+}
+async function removeMedia(siteId,id){ if(!confirm('이 항목을 삭제할까요?')) return; const s=getSite(siteId); const m=(s.media||[]).find(x=>x.id===id); await DB.deleteMedia(siteId,id); audit('delete','media',(m&&m.name)||'',s.name); await reload(); renderPhotos(); }
+
+/* ════════════ 감사 로그 (관리자 전용) ════════════ */
+let auditRows=[];
+async function loadAuditAndRender(){
+  const tb=document.getElementById('audit-rows');
+  if(MODE!=='cloud'){ tb.innerHTML='<tr><td colspan="5"><div class="empty">로컬 모드에는 감사 로그가 없습니다 (클라우드 모드 전용).</div></td></tr>'; return; }
+  const {data,error}=await sb.from('sc_audit').select('*').order('created_at',{ascending:false}).limit(1000);
+  if(error){ tb.innerHTML='<tr><td colspan="5"><div class="empty">열람 권한이 없습니다 (관리자 계정만).</div></td></tr>'; return; }
+  auditRows=data||[]; renderAudit();
+}
+function actLabel(a){ return ({login:'로그인',create:'생성',update:'수정',delete:'삭제',send:'발송',ack:'확인'})[a]||a; }
+function actPill(a){ const c=a==='delete'?'warn':a==='login'?'etc':a==='send'?'sms':'ok'; return `<span class="pill ${c}">${actLabel(a)}</span>`; }
+function renderAudit(){
+  const q=(document.getElementById('audit-q').value||'').toLowerCase(), af=document.getElementById('audit-act').value;
+  const rows=auditRows.filter(r=>(!af||r.action===af)&&(!q||[r.email,r.entity_name,r.detail,r.entity].join(' ').toLowerCase().includes(q)));
+  document.getElementById('audit-count').textContent=`${rows.length}건`;
+  document.getElementById('audit-rows').innerHTML=rows.length?rows.map(r=>`<tr><td class="muted">${fmtStamp(r.created_at)}</td><td><b>${esc(r.email||'')}</b>${r.role==='admin'?' <span class="pill etc">관리자</span>':''}</td><td>${actPill(r.action)}</td><td>${esc(r.entity_name||'')} <span class="muted" style="font-size:11px">${esc(r.entity||'')}</span></td><td class="muted">${esc(r.detail||'')}</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty">기록이 없습니다.</div></td></tr>';
+}
+
 /* ════════════ 안전관리 ════════════ */
 function renderPresets(){ const g=document.getElementById('preset-grid'); if(!presets.length){ g.innerHTML='<div class="empty">프리셋이 없습니다.</div>'; } else g.innerHTML=presets.map(p=>`<div class="preset"><div><span class="pill ${catClass(p.category)}">${p.category}</span></div><h4>${esc(p.title)}</h4><div class="body">${esc(p.body)}</div>${p.sched&&p.sched.on?`<div class="sched">⏰ ${schedLabel(p.sched)} 자동발송</div>`:''}<div class="foot" style="margin-top:10px"><button class="btn sm" onclick="openPreset('${p.id}')">수정</button><button class="btn sm primary" onclick="quickSend('${p.id}')">이 안내 보내기</button></div></div>`).join(''); refreshBadges(); }
 function schedLabel(s){ const fr=s.freq==='daily'?'매일':s.freq==='weekday'?'평일':'매주 '+['일','월','화','수','목','금','토'][s.weekday]; return `${fr} ${s.time}`; }
@@ -735,8 +823,8 @@ document.getElementById('p-sched-freq').onchange=toggleWeekday;
 function toggleWeekday(){ document.getElementById('p-weekday-wrap').style.display=document.getElementById('p-sched-freq').value==='weekly'?'block':'none'; }
 async function savePreset(){ const g=i=>document.getElementById(i).value; const title=g('p-title').trim(), body=g('p-body').trim(); if(!title||!body){ toast('제목과 문구를 입력하세요'); return; }
   const o={ id:g('p-id')||undefined, category:g('p-category'), title, body, sched:{on:document.getElementById('p-sched-on').checked,freq:g('p-sched-freq'),time:g('p-sched-time'),weekday:g('p-sched-weekday')} };
-  await DB.savePreset(o); await reload(); renderPresets(); renderShome(); closeModal('preset-modal'); toast('프리셋을 저장했습니다',true); }
-async function deletePreset(){ await DB.deletePreset(document.getElementById('p-id').value); await reload(); renderPresets(); renderShome(); closeModal('preset-modal'); toast('삭제했습니다'); }
+  await DB.savePreset(o); audit(o.id?'update':'create','preset',title); await reload(); renderPresets(); renderShome(); closeModal('preset-modal'); toast('프리셋을 저장했습니다',true); }
+async function deletePreset(){ const pid=document.getElementById('p-id').value; const pt=(presets.find(x=>x.id===pid)||{}).title; await DB.deletePreset(pid); audit('delete','preset',pt); await reload(); renderPresets(); renderShome(); closeModal('preset-modal'); toast('삭제했습니다'); }
 
 function initSend(){ document.getElementById('send-mode-tag').className='pill '+(isConnected()?'ok':'etc'); document.getElementById('send-mode-tag').textContent=isConnected()?'문자나라 연동됨':'연동 전 · 시뮬레이션';
   document.getElementById('send-preset').innerHTML=presets.map(p=>`<option value="${p.id}">[${p.category}] ${esc(p.title)}</option>`).join('');
@@ -749,8 +837,8 @@ function renderSendPreview(){ const p=presets.find(x=>x.id===document.getElement
   box.innerHTML=chosen.map(s=>{ const msg=fill(p.body,s),type=msgType(msg),no=!s.mphone; return `<div class="preset" style="max-height:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><b>📍 ${esc(s.name)} · ${esc(s.mname)} 소장</b><span><span class="pill ${type==='SMS'?'sms':'lms'}">${type} · ${byteLen(msg)}byte</span> <span class="pill ${catClass(p.category)}">${p.category}</span></span></div><div class="body" style="max-height:none">${esc(msg)}</div><div class="foot"><span class="pill ${no?'warn':'etc'}">📱 ${no?'번호없음':esc(s.mphone)}</span><button class="btn sm" onclick="copyOne('${p.id}','${s.id}')">📋 복사</button><button class="btn sm green" onclick="sendOne('${p.id}','${s.id}')" ${no?'disabled':''}>📩 문자 발송</button></div></div>`; }).join(''); }
 function copyOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); copyText(fill(p.body,s)); toast('문구를 복사했습니다',true); }
 async function doSend(p,s,auto){ const phone=(s.mphone||'').trim(),text=fill(p.body,s),type=msgType(text); if(!phone){ if(!auto)toast('⚠ '+s.mname+' 소장 번호가 없습니다'); await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone:'—',type,status:'실패(번호없음)'}); return false; } await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone,type,status:(auto?'자동 ':'')+(isConnected()?'발송 성공':'발송(시뮬)')}); return true; }
-async function sendOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); if(await doSend(p,s,false)){ await reload(); if(activeSub==='logs')renderLogs(); renderShome(); toast(`${s.mname} 소장에게 문자 발송${isConnected()?'':'(시뮬)'} 완료`,true); } }
-async function sendAll(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value); let ok=0,f=0; for(const s of selectedSites()){ (await doSend(p,s,false))?ok++:f++; } await reload(); renderShome(); toast(`발송 완료 — 성공 ${ok}건${f?`, 번호없음 ${f}건`:''}`,true); }
+async function sendOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); if(await doSend(p,s,false)){ audit('send','message',p.title+' → '+s.name); await reload(); if(activeSub==='logs')renderLogs(); renderShome(); toast(`${s.mname} 소장에게 문자 발송${isConnected()?'':'(시뮬)'} 완료`,true); } }
+async function sendAll(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value); let ok=0,f=0; for(const s of selectedSites()){ (await doSend(p,s,false))?ok++:f++; } audit('send','message',p.title+' (전체 '+ok+'건)'); await reload(); renderShome(); toast(`발송 완료 — 성공 ${ok}건${f?`, 번호없음 ${f}건`:''}`,true); }
 function quickSend(pid){ gotoSafety('send'); setTimeout(()=>{ document.getElementById('send-preset').value=pid; renderSendPreview(); },80); }
 function quickSafety(sid){ gotoSafety('send'); setTimeout(()=>{ document.querySelectorAll('.send-site').forEach(c=>c.checked=(c.value===sid)); renderSendPreview(); },80); }
 
