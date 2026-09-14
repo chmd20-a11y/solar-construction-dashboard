@@ -131,7 +131,7 @@
   <div class="loginbox">
     <div class="lg"><div class="mark">☀️</div><div><h1>시공현장 종합 현황</h1></div></div>
     <p class="sub" id="lg-sub">시공관리팀 로그인</p>
-    <div class="field"><label class="f" id="lg-email-label">로그인 ID</label><input class="t" id="lg-email" type="text" autocapitalize="off" autocomplete="username" placeholder="예: master 또는 이메일"></div>
+    <div class="field"><label class="f" id="lg-email-label">로그인 ID</label><input class="t" id="lg-email" type="text" autocapitalize="off" autocomplete="username" placeholder="아이디 또는 이메일"></div>
     <div class="field" id="lg-name-field" style="display:none"><label class="f">이름</label><input class="t" id="lg-name" placeholder="홍길동"></div>
     <div class="field"><label class="f">비밀번호</label><input class="t" id="lg-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitAuth()"></div>
     <button class="btn primary block" id="lg-btn" onclick="submitAuth()">로그인</button>
@@ -578,7 +578,7 @@ function toggleAuthMode(){ authMode=(authMode==='login')?'signup':'login'; const
   document.getElementById('lg-toggle').textContent=su?'← 로그인으로':'회원가입';
   document.getElementById('lg-sub').textContent=su?'회원가입 · 관리자 승인 후 사용':'시공관리팀 로그인';
   document.getElementById('lg-email-label').textContent=su?'이메일':'로그인 ID';
-  document.getElementById('lg-email').placeholder=su?'you@company.com':'예: master 또는 이메일';
+  document.getElementById('lg-email').placeholder=su?'you@company.com':'아이디 또는 이메일';
   document.getElementById('lg-msg').textContent=''; }
 function submitAuth(){ authMode==='signup'?doSignup():doLogin(); }
 async function doSignup(){
