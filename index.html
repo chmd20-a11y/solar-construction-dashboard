@@ -115,8 +115,8 @@
   .chip{display:inline-block;background:var(--line2);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-size:11.5px;font-weight:600;margin:2px 3px 2px 0;cursor:pointer;color:#4b5563}.chip:hover{background:var(--amber-soft);border-color:#ffe0ad;color:var(--amber-ink)}
   #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--dark);color:#fff;padding:13px 20px;border-radius:12px;font-size:13.5px;font-weight:600;opacity:0;transition:.3s;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}#toast.ok{background:var(--green)}
   /* 로그인 */
-  #login{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
-  #login.show{display:flex}
+  #login,#pending{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+  #login.show,#pending.show{display:flex}
   .loginbox{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:34px 30px;width:100%;max-width:380px}
   .loginbox .lg{display:flex;align-items:center;gap:10px;margin-bottom:6px}
   .loginbox .lg .mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#ffb347,var(--amber));display:flex;align-items:center;justify-content:center;font-size:20px}
@@ -130,11 +130,23 @@
 <div id="login">
   <div class="loginbox">
     <div class="lg"><div class="mark">☀️</div><div><h1>시공현장 종합 현황</h1></div></div>
-    <p class="sub">시공관리팀 로그인</p>
-    <div class="field"><label class="f">로그인 ID</label><input class="t" id="lg-email" type="text" autocapitalize="off" autocomplete="username" placeholder="예: master"></div>
-    <div class="field"><label class="f">비밀번호</label><input class="t" id="lg-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btn primary block" onclick="doLogin()">로그인</button>
+    <p class="sub" id="lg-sub">시공관리팀 로그인</p>
+    <div class="field"><label class="f" id="lg-email-label">로그인 ID</label><input class="t" id="lg-email" type="text" autocapitalize="off" autocomplete="username" placeholder="예: master 또는 이메일"></div>
+    <div class="field" id="lg-name-field" style="display:none"><label class="f">이름</label><input class="t" id="lg-name" placeholder="홍길동"></div>
+    <div class="field"><label class="f">비밀번호</label><input class="t" id="lg-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+    <button class="btn primary block" id="lg-btn" onclick="submitAuth()">로그인</button>
     <div id="lg-msg" class="muted" style="font-size:12px;margin-top:12px;text-align:center"></div>
+    <div style="text-align:center;margin-top:14px;font-size:12.5px"><a href="#" id="lg-toggle" onclick="toggleAuthMode();return false" style="color:var(--amber-ink);font-weight:600">회원가입</a></div>
+  </div>
+</div>
+
+<!-- 승인 대기 -->
+<div id="pending">
+  <div class="loginbox" style="text-align:center">
+    <div style="font-size:40px">⏳</div>
+    <h1 style="font-size:17px;margin:8px 0 6px">가입 완료 · 승인 대기</h1>
+    <p class="muted" style="font-size:13px;line-height:1.6"><b id="pending-email"></b><br>이 계정은 <b>관리자 승인 후</b> 사용할 수 있습니다.<br>관리자에게 승인을 요청해 주세요.</p>
+    <button class="btn block" style="margin-top:16px" onclick="doLogout()">로그아웃</button>
   </div>
 </div>
 
@@ -156,6 +168,7 @@
   <button data-mod="safety">🦺 현장 작업자 안전관리</button>
   <button data-mod="issues">🚩 이슈·점검 <span class="badge" id="b-issues" style="background:var(--line2);border-radius:20px;padding:1px 7px;font-size:11px">0</span></button>
   <button data-mod="photos">📸 시공 사진</button>
+  <button data-mod="members" id="mod-members" style="display:none">👥 계정관리</button>
   <button data-mod="audit" id="mod-audit" style="display:none">🧾 로그</button>
   <button data-mod="quality" disabled>📋 품질·검사 <span class="soon">준비중</span></button>
 </nav>
@@ -224,6 +237,14 @@
       <span class="muted" id="photo-hint" style="font-size:11.5px"></span>
     </div>
     <div id="photo-grid" class="sgrid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+  </section>
+
+  <!-- 계정 관리 (관리자 전용) -->
+  <section class="view" id="v-members">
+    <h2 class="title">계정 관리 <span class="pill etc">관리자 전용</span></h2>
+    <p class="desc">회원가입한 사용자를 승인/거절하고 관리자 권한을 지정합니다. 승인된 사용자만 대시보드를 사용할 수 있습니다.</p>
+    <div class="card pad" style="margin-bottom:12px"><b style="font-size:14px">🕓 승인 대기</b><div id="mem-pending" style="margin-top:10px"></div></div>
+    <div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:0"><b style="font-size:14px">✅ 승인된 계정</b></div><table><thead><tr><th>이메일/이름</th><th>권한</th><th>가입일</th><th style="width:200px"></th></tr></thead><tbody id="mem-rows"></tbody></table></div>
   </section>
 
   <!-- 감사 로그 (관리자 전용) -->
@@ -527,6 +548,37 @@ async function doLogin(){
   if(error){ msg.style.color='var(--red)'; msg.textContent='로그인 실패: '+error.message; }
 }
 async function doLogout(){ if(sb) await sb.auth.signOut(); location.reload(); }
+let authMode='login';
+function toggleAuthMode(){ authMode=(authMode==='login')?'signup':'login'; const su=authMode==='signup';
+  document.getElementById('lg-name-field').style.display=su?'block':'none';
+  document.getElementById('lg-btn').textContent=su?'회원가입 요청':'로그인';
+  document.getElementById('lg-toggle').textContent=su?'← 로그인으로':'회원가입';
+  document.getElementById('lg-sub').textContent=su?'회원가입 · 관리자 승인 후 사용':'시공관리팀 로그인';
+  document.getElementById('lg-email-label').textContent=su?'이메일':'로그인 ID';
+  document.getElementById('lg-email').placeholder=su?'you@company.com':'예: master 또는 이메일';
+  document.getElementById('lg-msg').textContent=''; }
+function submitAuth(){ authMode==='signup'?doSignup():doLogin(); }
+async function doSignup(){
+  const email=document.getElementById('lg-email').value.trim().toLowerCase(), pw=document.getElementById('lg-pw').value, name=document.getElementById('lg-name').value.trim();
+  const msg=document.getElementById('lg-msg');
+  if(!email.includes('@')){ msg.style.color='var(--red)'; msg.textContent='이메일을 입력하세요'; return; }
+  if(pw.length<6){ msg.style.color='var(--red)'; msg.textContent='비밀번호는 6자 이상'; return; }
+  msg.style.color='var(--sub)'; msg.textContent='가입 요청 중…';
+  const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{name}}});
+  if(error){ msg.style.color='var(--red)'; msg.textContent='가입 실패: '+error.message; return; }
+  if(!(data&&data.session)){ msg.style.color='var(--green)'; msg.textContent='가입 요청 완료. (이메일 확인 설정 시 확인 후) 관리자 승인을 기다려 주세요.'; }
+}
+async function renderMembers(){
+  const {data,error}=await sb.from('sc_members').select('*').order('created_at',{ascending:false});
+  const pend=document.getElementById('mem-pending'), rows=document.getElementById('mem-rows');
+  if(error){ pend.innerHTML='<div class="empty">관리자만 열람 가능합니다.</div>'; rows.innerHTML=''; return; }
+  const list=data||[], pending=list.filter(m=>!m.approved), ok=list.filter(m=>m.approved);
+  pend.innerHTML=pending.length?pending.map(m=>`<div class="checkline" style="justify-content:space-between"><span><b>${esc(m.email||'')}</b> ${m.name?`<span class="muted" style="font-size:11.5px">${esc(m.name)}</span>`:''}</span><span style="display:flex;gap:6px"><button class="btn sm green" onclick="approveMember('${m.user_id}',true)">승인</button><button class="btn sm danger" onclick="delMember('${m.user_id}')">거절</button></span></div>`).join(''):'<div class="muted" style="font-size:12.5px">대기 중인 요청이 없습니다.</div>';
+  rows.innerHTML=ok.length?ok.map(m=>`<tr><td><b>${esc(m.email||'')}</b><div class="muted" style="font-size:11.5px">${esc(m.name||'')}</div></td><td>${m.role==='admin'?'<span class="pill ok">관리자</span>':'<span class="pill etc">일반</span>'}</td><td class="muted">${m.created_at?fmtStamp(m.created_at):''}</td><td style="text-align:right">${m.role==='admin'?`<button class="btn sm" onclick="setMemberRole('${m.user_id}','user')">일반으로</button>`:`<button class="btn sm" onclick="setMemberRole('${m.user_id}','admin')">관리자 지정</button>`} <button class="btn sm" onclick="approveMember('${m.user_id}',false)">승인취소</button> <button class="btn sm danger" onclick="delMember('${m.user_id}')">삭제</button></td></tr>`).join(''):'<tr><td colspan="4"><div class="empty">승인된 계정이 없습니다.</div></td></tr>';
+}
+async function approveMember(uid,val){ await sb.from('sc_members').update({approved:val}).eq('user_id',uid); audit('update','member',uid,val?'승인':'승인취소'); renderMembers(); }
+async function setMemberRole(uid,role){ await sb.from('sc_members').update({role}).eq('user_id',uid); audit('update','member',uid,'역할='+role); renderMembers(); }
+async function delMember(uid){ if(!confirm('이 계정을 목록에서 삭제할까요? (로그인 계정 자체는 Supabase Auth에 남습니다)')) return; await sb.from('sc_members').delete().eq('user_id',uid); audit('delete','member',uid); renderMembers(); }
 
 /* ════════════ 부팅 ════════════ */
 async function boot(){
@@ -541,19 +593,26 @@ async function boot(){
   setInterval(autoCheck,15000);
 }
 async function afterLogin(user){
-  me={id:user.id, email:(user.email||'').toLowerCase(), name:(user.email||'사용자').split('@')[0], role:null};
-  try{ const {data}=await sb.from('profiles').select('role').eq('id',user.id).maybeSingle(); if(data) me.role=data.role; }catch(e){}
+  me={id:user.id, email:(user.email||'').toLowerCase(), name:(user.user_metadata&&user.user_metadata.name)||(user.email||'사용자').split('@')[0], role:'user', approved:false};
+  // 회원(sc_members) 조회 — 없으면 승인대기로 등록
+  let mem=null; try{ const r=await sb.from('sc_members').select('*').eq('user_id',user.id).maybeSingle(); mem=r.data; }catch(e){}
+  if(!mem){ try{ await sb.from('sc_members').insert({user_id:user.id,email:me.email,name:me.name,role:'user',approved:false}); const r2=await sb.from('sc_members').select('*').eq('user_id',user.id).maybeSingle(); mem=r2.data; }catch(e){} }
+  if(mem){ me.role=mem.role; me.approved=mem.approved; if(mem.name) me.name=mem.name; }
   document.getElementById('login').classList.remove('show');
+  if(!me.approved){ showPending(); return; }
   await DB.loadAll(); showApp(); renderAll(); subscribeRealtime();
   audit('login','auth',me.email,'로그인');
 }
+function showPending(){ document.getElementById('app').style.display='none'; document.getElementById('login').classList.remove('show'); document.getElementById('pending-email').textContent=me.email; document.getElementById('pending').classList.add('show'); }
 function showApp(){
   document.getElementById('app').style.display='block';
   const mp=document.getElementById('modepill'); mp.className='modepill'+(MODE==='cloud'?' cloud':'');
   document.getElementById('mode-txt').textContent=MODE==='cloud'?'클라우드 모드':'로컬 모드';
   document.getElementById('whoami').textContent=me?('👤 '+me.name+(me.role==='admin'?' (관리자)':'')):'';
   document.getElementById('logout-btn').style.display=MODE==='cloud'?'inline-flex':'none';
-  document.getElementById('mod-audit').style.display=(me&&me.role==='admin')?'flex':'none';
+  const isAdmin=(me&&me.role==='admin'&&me.approved);
+  document.getElementById('mod-audit').style.display=isAdmin?'flex':'none';
+  document.getElementById('mod-members').style.display=isAdmin?'flex':'none';
 }
 let rtTimer=null;
 function subscribeRealtime(){
@@ -579,6 +638,7 @@ document.querySelectorAll('#mods button').forEach(b=>{ if(b.disabled) return; b.
   else if(activeMod==='safety'){ showSub('shome'); }
   else if(activeMod==='issues'){ showView('v-issues'); renderIssues(); }
   else if(activeMod==='photos'){ showView('v-photos'); renderPhotos(); }
+  else if(activeMod==='members'){ showView('v-members'); renderMembers(); }
   else if(activeMod==='audit'){ showView('v-audit'); loadAuditAndRender(); }
 };});
 document.querySelectorAll('#subs button').forEach(b=>{ b.onclick=()=>showSub(b.dataset.sub); });
