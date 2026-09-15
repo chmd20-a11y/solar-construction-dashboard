@@ -334,16 +334,15 @@
 
   <!-- 설정 -->
   <section class="view" id="v-settings">
-    <h2 class="title">설정 · 문자나라 연동</h2>
-    <p class="desc">문자나라 API 정보를 입력하면 실제 발송으로 전환됩니다. 비워두면 시뮬레이션으로 동작합니다.</p>
-    <div class="note" style="margin-bottom:18px"><span class="i">🔑</span><span>API키가 없으면 그대로 두세요 — 시뮬레이션으로 동작합니다. 회사 문자나라 계정에서 인증키 발급 후 넣으면 실제 발송으로 연결됩니다.</span></div>
+    <h2 class="title">설정 · 문자 발송 연동</h2>
+    <p class="desc">중계 서버 주소를 입력하면 실제 문자 발송으로 전환됩니다. 비워두면 시뮬레이션으로 동작합니다.</p>
+    <div class="note" style="margin-bottom:18px"><span class="i">🔑</span><span>문자나라 계정 정보(비밀번호 등)는 <b>중계 서버에만 저장</b>되어 안전합니다 — 이 화면엔 서버 주소만 입력합니다. 비워두면 시뮬레이션으로 동작합니다.</span></div>
     <div class="card pad" style="max-width:560px">
-      <div class="field"><label class="f">문자나라 아이디</label><input class="t" id="set-id" placeholder="문자나라 로그인 아이디"></div>
-      <div class="field"><label class="f">API 인증키</label><input class="t" id="set-key" placeholder="발급받은 API 키 (미입력 시 시뮬레이션)"></div>
-      <div class="field"><label class="f">발신번호 <span class="muted" style="font-weight:500">(사전등록된 번호)</span></label><input class="t" id="set-sender" placeholder="예) 0311234567"></div>
+      <div class="field"><label class="f">중계 서버 주소</label><input class="t" id="set-relay" placeholder="예) https://xxxx.ngrok-free.app"></div>
       <div class="field"><label class="f">발송 타입</label><select class="t" id="set-type"><option value="auto">자동 (90byte 이하 SMS, 초과 LMS)</option><option value="lms">항상 LMS(장문)</option></select></div>
-      <div style="display:flex;gap:8px;margin-top:6px"><button class="btn primary" onclick="saveSettings()">저장</button><button class="btn" onclick="testConn()">연동 상태 확인</button></div>
+      <div style="display:flex;gap:8px;margin-top:6px"><button class="btn primary" onclick="saveSettings()">저장</button><button class="btn" onclick="testConn()">연결 테스트</button></div>
       <div id="set-status" style="margin-top:14px"></div>
+      <div class="muted" style="margin-top:10px;font-size:12.5px">현재 발신번호: <b id="set-sender-info">—</b></div>
     </div>
   </section>
 </main>
@@ -454,7 +453,7 @@ function statusClass(s){ return s==='지연'?'delay':s==='주의'?'caution':'nor
 function esc(s){ return (s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
 function byteLen(s){ let b=0; for(const ch of (s||'')){ b+=ch.charCodeAt(0)>127?2:1; } return b; }
 function msgType(s){ if(settings.type==='lms') return 'LMS'; return byteLen(s)<=90?'SMS':'LMS'; }
-function isConnected(){ return !!(settings.key&&settings.sender); }
+function isConnected(){ return !!(settings.relayUrl); }
 function dday(due){ if(!due) return null; return Math.ceil((new Date(due)-new Date())/86400000); }
 function ddayTxt(due){ const d=dday(due); if(d===null) return '—'; if(d===0) return 'D-DAY'; return d>0?('D-'+d):('D+'+(-d)); }
 function fmtDate(s){ if(!s) return '미정'; const d=new Date(s); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
@@ -568,7 +567,13 @@ async function doLogin(){
   const email = raw.includes('@') ? raw : (LOGIN_MAP[raw] || LOGIN_MAP[raw.toLowerCase()] || raw);
   const msg=document.getElementById('lg-msg'); msg.style.color='var(--sub)'; msg.textContent='로그인 중…';
   const {error}=await sb.auth.signInWithPassword({email,password:pw});
-  if(error){ msg.style.color='var(--red)'; msg.textContent='로그인 실패: '+error.message; }
+  if(error){ msg.style.color='var(--red)'; msg.textContent=loginErrMsg(error.message); }
+}
+function loginErrMsg(m){ const s=(m||'').toLowerCase();
+  if(s.includes('invalid login')||s.includes('invalid credentials')) return '아이디(이메일) 또는 비밀번호가 올바르지 않습니다. 회원가입한 이메일로 로그인하세요.';
+  if(s.includes('email not confirmed')) return '이메일 인증이 완료되지 않았습니다. 관리자에게 문의해 주세요.';
+  if(s.includes('network')||s.includes('failed to fetch')) return '네트워크 오류입니다. 잠시 후 다시 시도해 주세요.';
+  return '로그인 실패: '+m;
 }
 async function doLogout(){ if(sb) await sb.auth.signOut(); location.reload(); }
 let authMode='login';
@@ -623,7 +628,7 @@ async function afterLogin(user){
   if(mem){ me.role=mem.role; me.approved=mem.approved; if(mem.name) me.name=mem.name; }
   document.getElementById('login').classList.remove('show');
   if(!me.approved){ showPending(); return; }
-  await DB.loadAll(); showApp(); renderAll(); subscribeRealtime();
+  await DB.loadAll(); await loadRelayPointer(); showApp(); renderAll(); subscribeRealtime();
   audit('login','auth',me.email,'로그인');
 }
 function showPending(){ document.getElementById('app').style.display='none'; document.getElementById('login').classList.remove('show'); document.getElementById('pending-email').textContent=me.email; document.getElementById('pending').classList.add('show'); }
@@ -973,7 +978,26 @@ function renderSendPreview(){ const p=presets.find(x=>x.id===document.getElement
   if(!p||!chosen.length){ box.innerHTML='<div class="empty">프리셋과 대상을 선택하세요.</div>'; return; }
   box.innerHTML=chosen.map(s=>{ const msg=fill(p.body,s),type=msgType(msg),no=!s.mphone; return `<div class="preset" style="max-height:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><b>📍 ${esc(s.name)} · ${esc(s.mname)} 소장</b><span><span class="pill ${type==='SMS'?'sms':'lms'}">${type} · ${byteLen(msg)}byte</span> <span class="pill ${catClass(p.category)}">${p.category}</span></span></div><div class="body" style="max-height:none">${esc(msg)}</div><div class="foot"><span class="pill ${no?'warn':'etc'}">📱 ${no?'번호없음':esc(s.mphone)}</span><button class="btn sm" onclick="copyOne('${p.id}','${s.id}')">📋 복사</button><button class="btn sm green" onclick="sendOne('${p.id}','${s.id}')" ${no?'disabled':''}>📩 문자 발송</button></div></div>`; }).join(''); }
 function copyOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); copyText(fill(p.body,s)); toast('문구를 복사했습니다',true); }
-async function doSend(p,s,auto){ const phone=(s.mphone||'').trim(),text=fill(p.body,s),type=msgType(text); if(!phone){ if(!auto)toast('⚠ '+s.mname+' 소장 번호가 없습니다'); await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone:'—',type,status:'실패(번호없음)'}); return false; } await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone,type,status:(auto?'자동 ':'')+(isConnected()?'발송 성공':'발송(시뮬)')}); return true; }
+async function sendViaRelay(receiver,message,receiverName){
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    const token=session&&session.access_token;
+    if(!token) return {ok:false,error:'로그인 필요'};
+    const res=await fetch(settings.relayUrl.replace(/\/+$/,'')+'/send',{ method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'ngrok-skip-browser-warning':'true'},
+      body:JSON.stringify({receiver,message,receiver_name:receiverName}) });
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok) return {ok:false,error:j.error||('서버오류 '+res.status)};
+    return j; // {ok, code, codeText, ...}
+  }catch(e){ return {ok:false,error:'중계서버 연결 실패'}; }
+}
+async function doSend(p,s,auto){ const phone=(s.mphone||'').trim(),text=fill(p.body,s),type=msgType(text);
+  if(!phone){ if(!auto)toast('⚠ '+s.mname+' 소장 번호가 없습니다'); await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone:'—',type,status:'실패(번호없음)'}); return false; }
+  let status, ok=true;
+  if(isConnected()&&MODE==='cloud'){ const r=await sendViaRelay(phone,text,(s.mname||'')+' 소장'); ok=!!r.ok; status=(auto?'자동 ':'')+(r.ok?'발송 성공':'실패('+(r.error||r.codeText||'오류')+')'); }
+  else { status=(auto?'자동 ':'')+'발송(시뮬)'; }
+  await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone,type,status});
+  return ok; }
 async function sendOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); if(await doSend(p,s,false)){ audit('send','message',p.title+' → '+s.name); await reload(); if(activeSub==='logs')renderLogs(); renderShome(); toast(`${s.mname} 소장에게 문자 발송${isConnected()?'':'(시뮬)'} 완료`,true); } }
 async function sendAll(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value); let ok=0,f=0; for(const s of selectedSites()){ (await doSend(p,s,false))?ok++:f++; } audit('send','message',p.title+' (전체 '+ok+'건)'); await reload(); renderShome(); toast(`발송 완료 — 성공 ${ok}건${f?`, 번호없음 ${f}건`:''}`,true); }
 function quickSend(pid){ gotoSafety('send'); setTimeout(()=>{ document.getElementById('send-preset').value=pid; renderSendPreview(); },80); }
@@ -996,9 +1020,12 @@ function statusPill(st){ if((st||'').includes('실패'))return '<span class="pil
 function renderLogs(){ const tb=document.getElementById('log-rows'); if(!logs.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty">발송 기록이 없습니다.</div></td></tr>'; } else tb.innerHTML=logs.map(l=>`<tr><td class="muted">${l.stamp}</td><td><span class="pill ${catClass(l.category)}">${l.category}</span></td><td>${esc(l.title)}</td><td>${esc(l.name)}</td><td class="muted">${esc(l.phone)}</td><td>${l.type?`<span class="pill ${l.type==='SMS'?'sms':'lms'}">${l.type}</span>`:'—'}</td><td>${statusPill(l.status)}</td></tr>`).join(''); refreshBadges(); }
 async function clearLogs(){ if(confirm('발송 로그를 모두 지울까요?')){ await DB.clearLogs(); await reload(); renderLogs(); renderShome(); } }
 
-function fillSettings(){ document.getElementById('set-id').value=settings.id||''; document.getElementById('set-key').value=settings.key||''; document.getElementById('set-sender').value=settings.sender||''; document.getElementById('set-type').value=settings.type||'auto'; document.getElementById('set-status').innerHTML=''; }
-async function saveSettings(){ settings.id=document.getElementById('set-id').value.trim(); settings.key=document.getElementById('set-key').value.trim(); settings.sender=document.getElementById('set-sender').value.trim(); settings.type=document.getElementById('set-type').value; await DB.saveSettingsRemote(); renderConn(); toast('설정을 저장했습니다',true); testConn(); }
-function testConn(){ const b=document.getElementById('set-status'); if(isConnected()){ b.innerHTML='<span class="pill ok">● 연동됨</span> <span class="muted" style="font-size:12.5px">실제 발송 모드 (실발송은 API 서버 연동 필요)</span>'; } else { b.innerHTML='<span class="pill warn">● 연동 전</span> <span class="muted" style="font-size:12.5px">인증키·발신번호 입력 전까지 시뮬레이션</span>'; } }
+function fillSettings(){ document.getElementById('set-relay').value=settings.relayUrl||''; document.getElementById('set-type').value=settings.type||'auto'; document.getElementById('set-status').innerHTML=''; loadRelayInfo(); }
+async function saveSettings(){ settings.relayUrl=document.getElementById('set-relay').value.trim().replace(/\/+$/,''); settings.type=document.getElementById('set-type').value; await DB.saveSettingsRemote(); renderConn(); toast('설정을 저장했습니다',true); testConn(); }
+async function testConn(){ const b=document.getElementById('set-status'); if(!isConnected()){ b.innerHTML='<span class="pill warn">● 연동 전</span> <span class="muted" style="font-size:12.5px">중계 서버 주소 입력 전까지 시뮬레이션</span>'; loadRelayInfo(); return; } b.innerHTML='<span class="muted" style="font-size:12.5px">확인 중…</span>'; try{ const res=await fetch(settings.relayUrl.replace(/\/+$/,'')+'/health',{headers:{'ngrok-skip-browser-warning':'true'}}); const j=await res.json(); if(j&&j.ok){ b.innerHTML='<span class="pill ok">● 연동됨</span> <span class="muted" style="font-size:12.5px">실제 발송 모드 · 발신번호 '+(j.sender||'')+'</span>'; const si=document.getElementById('set-sender-info'); if(si)si.textContent=j.sender||'—'; } else b.innerHTML='<span class="pill warn">● 응답 오류</span>'; }catch(e){ b.innerHTML='<span class="pill warn">● 연결 실패</span> <span class="muted" style="font-size:12.5px">중계 서버 주소를 확인하세요</span>'; } }
+async function loadRelayInfo(){ const si=document.getElementById('set-sender-info'); if(!si)return; if(!isConnected()){ si.textContent='—'; return; } try{ const res=await fetch(settings.relayUrl.replace(/\/+$/,'')+'/health',{headers:{'ngrok-skip-browser-warning':'true'}}); const j=await res.json(); si.textContent=(j&&j.sender)||'—'; }catch(e){ si.textContent='(연결 안 됨)'; } }
+// 중계기 공개주소는 맥미니가 relay.json에 자동 게시(재부팅해도 자동복구). 저장된 설정값은 폴백.
+async function loadRelayPointer(){ try{ const r=await fetch('relay.json?t='+Date.now(),{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(j&&j.url) settings.relayUrl=String(j.url).replace(/\/+$/,''); } }catch(e){} }
 function renderConn(){ const mp=document.getElementById('modepill'); }
 
 /* ════════════ 백업/복원/공통 ════════════ */
