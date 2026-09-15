@@ -106,6 +106,12 @@
   .preset h4{margin:9px 0 6px;font-size:15px}.preset .body{font-size:12.8px;color:#4b5563;white-space:pre-wrap;background:var(--line2);border-radius:9px;padding:10px 12px;margin:4px 0 12px;flex:1;max-height:150px;overflow:auto}
   .preset .foot{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.preset .sched{font-size:11.5px;color:var(--sub);margin-top:8px}
   .kv{display:grid;grid-template-columns:90px 1fr;gap:6px 12px;font-size:13px;margin:2px 0 14px}.kv .k{color:var(--sub);font-weight:600}
+  .dtbl{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0 6px}
+  .dtbl th,.dtbl td{padding:8px 11px;text-align:left;border:1px solid var(--line);vertical-align:top}
+  .dtbl th{background:var(--line2);color:var(--sub);font-weight:600;white-space:nowrap}
+  .dtbl thead th{background:#eef1f7;color:var(--ink);font-weight:700;text-align:center}
+  .dtbl .sum th,.dtbl .sum td{background:var(--amber-soft);font-weight:800;color:var(--ink)}
+  .sec-t{margin:16px 0 7px;font-size:13.5px;font-weight:800}
   .switch{position:relative;display:inline-block;width:52px;height:29px;flex:0 0 auto}.switch input{opacity:0;width:0;height:0}
   .slider{position:absolute;cursor:pointer;inset:0;background:#c9ced8;border-radius:30px;transition:.25s}.slider:before{content:"";position:absolute;height:23px;width:23px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
   .switch input:checked + .slider{background:var(--green)}.switch input:checked + .slider:before{transform:translateX(23px)}
@@ -268,7 +274,7 @@
     <div class="row">
       <div class="col card pad" style="max-width:380px">
         <div class="field"><label class="f">① 검증 대상 현장</label><select class="t" id="vf-site" onchange="renderVerifyRefs()"></select></div>
-        <div class="field"><label class="f">② 기준값 (현장 정보에서 자동)</label><div id="vf-refs"></div><div class="muted" style="font-size:11px;margin-top:6px">※ 사업자번호·면적이 비어 있으면 현황개요에서 현장 수정으로 입력하세요.</div></div>
+        <div class="field"><label class="f">② 기준값 (현장 정보에서 자동)</label><div id="vf-refs"></div><div class="muted" style="font-size:11px;margin-top:6px">※ 사업자번호가 비어 있으면 현황개요에서 현장 수정으로 입력하세요.</div></div>
         <div class="field"><label class="f">③ 공문 폴더</label>
           <button class="btn primary block" onclick="pickVerifyFolder()">📁 PDF 폴더 선택</button>
           <div style="text-align:center;margin:6px 0"><span class="muted" style="font-size:11px">또는</span></div>
@@ -361,7 +367,7 @@
   <div class="mb">
     <input type="hidden" id="s-id">
     <div class="row"><div class="col field" style="flex:2"><label class="f">현장명</label><input class="t" id="s-name" placeholder="예) 김포 물류창고 지붕태양광"></div><div class="col field"><label class="f">사업주 성명</label><input class="t" id="s-owner" placeholder="(주)○○물류 / 홍길동"></div></div>
-    <div class="row"><div class="col field"><label class="f">유형</label><select class="t" id="s-type"><option>지붕</option><option>부지</option><option>축사</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div><div class="col field"><label class="f">면적(㎡)</label><input class="t" id="s-area" type="number" placeholder="3300"></div></div>
+    <div class="row"><div class="col field"><label class="f">유형</label><select class="t" id="s-type"><option>지붕</option><option>부지</option><option>축사</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div></div>
     <div class="row"><div class="col field"><label class="f">위치/주소</label><input class="t" id="s-loc" placeholder="경기 김포시 ..."></div><div class="col field"><label class="f">사업자번호</label><input class="t" id="s-bizno" placeholder="123-45-67890"></div></div>
     <div class="row"><div class="col field"><label class="f">소장 이름</label><input class="t" id="s-mname" placeholder="홍길동"></div><div class="col field"><label class="f">소장 휴대폰 <span class="muted" style="font-weight:500">(문자 대상)</span></label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
     <div class="row"><div class="col field"><label class="f">담당자 이름</label><input class="t" id="s-cname" placeholder="김담당"></div><div class="col field"><label class="f">담당자 휴대폰</label><input class="t" id="s-cphone" placeholder="010-0000-0000"></div></div>
@@ -726,10 +732,31 @@ function renderDetail(){
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><span class="pill type">${s.type}</span><span class="pill ${statusClass(s.status)}">${s.status}</span><span class="muted" style="font-size:12.5px">${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)} · 👷 ${esc(s.mname)} 소장</span></div>
     <div class="dtabs"><button class="${detailTab==='공정'?'active':''}" onclick="setDetailTab('공정')">📅 공정</button><button class="${detailTab==='이슈'?'active':''}" onclick="setDetailTab('이슈')">🚩 이슈<span class="c">${openN?openN+'/':''}${issN}</span></button><button class="${detailTab==='점검'?'active':''}" onclick="setDetailTab('점검')">🔍 점검<span class="c">${inspN}</span></button><button class="${detailTab==='확인'?'active':''}" onclick="setDetailTab('확인')">✅ 확인<span class="c">${ackDone}/${ackTot}</span></button></div>${content}`;
 }
+function parseModuleWatt(m){ const x=String(m||'').match(/(\d+(?:\.\d+)?)\s*W\b/i); return x?parseFloat(x[1]):null; }
+function stripModuleWatt(m){ return String(m||'').replace(/\s*\d+(?:\.\d+)?\s*W\b/i,'').trim(); }
+function parseInvCap(m){ const x=String(m||'').match(/(\d{2,4})/); return x?parseInt(x[1],10):null; }
 function renderDetailProcess(s){
   const tl=STAGES.map((st,i)=>{ const cls=i<s.stage?'done':i===s.stage?'cur':''; const last=i===STAGES.length-1; return `<li class="${cls}"><div class="mk"><div class="b"></div>${last?'':'<div class="ln"></div>'}</div><div class="ct"><b>${i+1}. ${st}</b> ${i===s.stage?'<span class="pill caution" style="margin-left:4px">진행중</span>':i<s.stage?'<span class="pill normal" style="margin-left:4px">완료</span>':''}<div class="dt">예정 ${stageDate(s,i)||'—'}</div></div></li>`; }).join('');
   return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="pbar"><i style="width:${s.progress}%"></i></div><b>${s.progress}%</b></div>
-    <div class="kv"><div class="k">사업주</div><div>${esc(s.owner)||'—'}</div><div class="k">용량</div><div>${(+s.cap||0).toLocaleString()} kW</div><div class="k">모듈</div><div>${esc(s.moduleModel)||'—'} ${s.moduleQty?('· '+(+s.moduleQty).toLocaleString()+'장'):''}</div><div class="k">인버터</div><div>${esc(s.inverterModel)||'—'} ${s.inverterQty?('· '+s.inverterQty+'대'):''}</div><div class="k">시공/토목</div><div>${esc(s.builder)||'—'} / ${esc(s.civil)||'—'}</div><div class="k">소장</div><div>${esc(s.mname)} ${s.mphone?'· '+esc(s.mphone):'<span class="pill warn">번호없음</span>'}</div><div class="k">담당자</div><div>${esc(s.cname)||'—'} ${s.cphone?'· '+esc(s.cphone):''}</div><div class="k">착공/준공</div><div>${fmtDate(s.start)} ~ ${fmtDate(s.due)} <span class="pill ${s.status==='지연'?'delay':'etc'}" style="margin-left:4px">${ddayTxt(s.due)}</span></div><div class="k">메모</div><div>${esc(s.note)||'—'}</div></div>
+    <div class="sec-t">📋 기본 정보</div>
+    <table class="dtbl">
+      <tr><th>사업주</th><td>${esc(s.owner)||'—'}</td></tr>
+      <tr><th>용량</th><td>${(+s.cap||0).toLocaleString()} kW</td></tr>
+      <tr><th>시공/토목</th><td>${esc(s.builder)||'—'} / ${esc(s.civil)||'—'}</td></tr>
+      <tr><th>소장</th><td>${esc(s.mname)||'—'} ${s.mphone?'· '+esc(s.mphone):'<span class="pill warn">번호없음</span>'}</td></tr>
+      <tr><th>담당자</th><td>${esc(s.cname)||'—'} ${s.cphone?'· '+esc(s.cphone):''}</td></tr>
+      <tr><th>착공/준공</th><td>${fmtDate(s.start)} ~ ${fmtDate(s.due)} <span class="pill ${s.status==='지연'?'delay':'etc'}" style="margin-left:4px">${ddayTxt(s.due)}</span></td></tr>
+      <tr><th>메모</th><td>${esc(s.note)||'—'}</td></tr>
+    </table>
+    <div class="sec-t">📦 주요 기자재 현황</div>
+    <table class="dtbl">
+      <thead><tr><th>구분</th><th>모델</th><th>용량</th><th>수량</th></tr></thead>
+      <tbody>
+        <tr><th>모듈</th><td>${esc(stripModuleWatt(s.moduleModel)||s.moduleModel||'—')}</td><td>${(w=>w!=null?w+'W':'—')(parseModuleWatt(s.moduleModel))}</td><td>${s.moduleQty?(+s.moduleQty).toLocaleString()+'장':'—'}</td></tr>
+        <tr><th>인버터</th><td>${esc(s.inverterModel)||'—'}</td><td>${(c=>c!=null?c+'kW':'—')(parseInvCap(s.inverterModel))}</td><td>${s.inverterQty?s.inverterQty+'대':'—'}</td></tr>
+        <tr class="sum"><th>시공 용량</th><td colspan="3">${(()=>{const w=parseModuleWatt(s.moduleModel),q=+s.moduleQty||0;return (w&&q)?(w*q/1000).toLocaleString(undefined,{maximumFractionDigits:1})+' KW':'—';})()} <span class="muted" style="font-weight:600;font-size:11.5px">(모듈용량 × 수량 ÷ 1,000)</span></td></tr>
+      </tbody>
+    </table>
     ${renderPermits(s)}
     ${s.processChart?`<h4 style="margin:16px 0 8px;font-size:14px">📅 공정표</h4><img src="${s.processChart}" onclick="openImg(this.src)" style="width:100%;height:auto;max-height:340px;object-fit:contain;background:var(--line2);border:1px solid var(--line);border-radius:10px;cursor:pointer">`:''}
     <h4 style="margin:16px 0 10px;font-size:14px">🗂 공정 단계 (계약~준공)</h4><ul class="tl" style="list-style:none;margin:0;padding:0">${tl}</ul>`;
@@ -797,7 +824,7 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
   const v=(k,d)=>document.getElementById(k).value=(s?(s[d==null?k:d]??''):''); // not used
   document.getElementById('s-id').value=s?s.id:'';
   const set=(id2,val)=>document.getElementById(id2).value=val;
-  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'지붕'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):''); set('s-area',s?(s.area||''):''); set('s-bizno',s?(s.bizno||''):'');
+  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'지붕'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):''); set('s-bizno',s?(s.bizno||''):'');
   set('s-mname',s?(s.mname||''):''); set('s-mphone',s?(s.mphone||''):''); set('s-cname',s?(s.cname||''):''); set('s-cphone',s?(s.cphone||''):'');
   set('s-mmodel',s?(s.moduleModel||''):''); set('s-mqty',s?(s.moduleQty||''):''); set('s-imodel',s?(s.inverterModel||''):''); set('s-iqty',s?(s.inverterQty||''):'');
   set('s-builder',s?(s.builder||''):''); set('s-civil',s?(s.civil||''):''); set('s-start',s?(s.start||''):''); set('s-due',s?(s.due||''):'');
@@ -807,7 +834,7 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
 async function saveSite(){
   const g=id=>document.getElementById(id).value; const name=g('s-name').trim(); if(!name){ toast('현장명을 입력하세요'); return; }
   const sid=g('s-id'); const prev=sid?getSite(sid):null;
-  const o={ id:sid||undefined, name, owner:g('s-owner').trim(), type:g('s-type'), cap:+g('s-cap')||0, loc:g('s-loc').trim(), area:+g('s-area')||0, bizno:g('s-bizno').trim(),
+  const o={ id:sid||undefined, name, owner:g('s-owner').trim(), type:g('s-type'), cap:+g('s-cap')||0, loc:g('s-loc').trim(), bizno:g('s-bizno').trim(),
     mname:g('s-mname').trim(), mphone:g('s-mphone').trim(), cname:g('s-cname').trim(), cphone:g('s-cphone').trim(),
     moduleModel:g('s-mmodel').trim(), moduleQty:+g('s-mqty')||0, inverterModel:g('s-imodel').trim(), inverterQty:+g('s-iqty')||0,
     builder:g('s-builder').trim(), civil:g('s-civil').trim(), start:g('s-start'), due:g('s-due'),
@@ -908,7 +935,6 @@ function siteRefs(s){ const r=[];
   if(s.owner) r.push({label:'사업주',value:String(s.owner),type:'text'});
   if(s.bizno) r.push({label:'사업자번호',value:String(s.bizno),type:'bizno'});
   if(s.cap) r.push({label:'용량',value:String(s.cap),unit:'kW',type:'num'});
-  if(s.area) r.push({label:'면적',value:String(s.area),unit:'㎡',type:'num'});
   if(s.loc) r.push({label:'주소/위치',value:String(s.loc),type:'text'});
   if(s.moduleModel) r.push({label:'모듈모델',value:String(s.moduleModel),type:'text'});
   if(s.moduleQty) r.push({label:'모듈수량',value:String(s.moduleQty),unit:'장',type:'num'});
