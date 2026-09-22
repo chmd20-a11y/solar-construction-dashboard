@@ -44,7 +44,7 @@
   .pill.before{background:var(--blue-soft);color:var(--blue)}.pill.during{background:var(--amber-soft);color:var(--amber-ink)}
   .pill.etc{background:var(--line2);color:var(--sub)}.pill.ok{background:var(--green-soft);color:var(--green)}.pill.warn{background:var(--red-soft);color:var(--red)}
   .pill.normal{background:var(--green-soft);color:var(--green)}.pill.caution{background:var(--amber-soft);color:var(--amber-ink)}.pill.delay{background:var(--red-soft);color:var(--red)}
-  .pill.done{background:var(--green-soft);color:var(--green)}.pill.wait{background:var(--line2);color:var(--sub)}.pill.land{background:#f4ead6;color:#8a5a12}.pill.bldg{background:var(--blue-soft);color:var(--blue)}
+  .pill.done{background:var(--green-soft);color:var(--green)}.pill.wait{background:var(--line2);color:var(--sub)}.pill.land{background:#f4ead6;color:#8a5a12}.pill.bldg{background:var(--blue-soft);color:var(--blue)}.pill.cancel{background:#f6e0e0;color:#b23b3b}
   .pill.sms{background:#eef2ff;color:#4338ca}.pill.lms{background:#f0f6ff;color:#1e6fd8}.pill.auto{background:#ecfdf5;color:#047857}.pill.type{background:#f1f3f8;color:#475569;border:1px solid var(--line)}
   .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
   .btn:hover{border-color:#cfd6e0;background:#fafbfc}
@@ -71,7 +71,7 @@
   .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
   .scard{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer}
   .scard.delay{border-left:4px solid var(--red)}.scard.caution{border-left:4px solid var(--amber)}.scard.normal{border-left:4px solid var(--green)}
-  .scard.done{border-left:4px solid var(--green)}.scard.wait{border-left:4px solid #9aa3b2}.scard.land{border-left:4px solid #b5761f}.scard.bldg{border-left:4px solid var(--blue)}
+  .scard.done{border-left:4px solid var(--green)}.scard.wait{border-left:4px solid #9aa3b2}.scard.land{border-left:4px solid #b5761f}.scard.bldg{border-left:4px solid var(--blue)}.scard.cancel{border-left:4px solid #c0392b;opacity:.82}
   .scard .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.scard .sh h4{margin:0 0 4px;font-size:16px}
   .scard .meta{font-size:12px;color:var(--sub)}.scard .who{font-size:12.5px}
   .stepper{display:flex;align-items:flex-start;overflow-x:auto;padding:4px 0 2px}
@@ -204,7 +204,7 @@
     <div class="distrib" id="distrib"></div>
     <div class="filters" id="filters">
       <span class="muted" style="font-size:12px;font-weight:700">상태</span>
-      <span class="fchip on" data-fk="status" data-fv="all">전체</span><span class="fchip" data-fk="status" data-fv="토지">토지</span><span class="fchip" data-fk="status" data-fv="건물">건물</span><span class="fchip" data-fk="status" data-fv="대기">대기</span><span class="fchip" data-fk="status" data-fv="완료">완료</span>
+      <span class="fchip on" data-fk="status" data-fv="all">전체</span><span class="fchip" data-fk="status" data-fv="토지">토지</span><span class="fchip" data-fk="status" data-fv="건물">건물</span><span class="fchip" data-fk="status" data-fv="대기">대기</span><span class="fchip" data-fk="status" data-fv="완료">완료</span><span class="fchip" data-fk="status" data-fv="취소">취소</span>
       <span style="width:1px;height:20px;background:var(--line);margin:0 4px"></span>
       <input class="t" id="site-search" placeholder="🔍 발전소명 검색" oninput="onSearch(this.value)" autocomplete="off" style="max-width:220px;width:auto;padding:6px 10px;font-size:13px">
       <span class="muted" id="search-count" style="font-size:11.5px"></span>
@@ -376,7 +376,7 @@
     <div class="row" style="display:none"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">시공업체</label><input class="t" id="s-builder"></div><div class="col field"><label class="f">토목업체</label><input class="t" id="s-civil"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">착공일</label><input class="t" id="s-start" type="date"></div><div class="col field"><label class="f">준공 예정일</label><input class="t" id="s-due" type="date"></div></div>
-    <div class="row"><div class="col field" style="display:none"><label class="f">현재 단계</label><select class="t" id="s-stage"></select></div><div class="col field"><label class="f">진행률(%)</label><input class="t" id="s-progress" type="number" min="0" max="100" placeholder="60"></div><div class="col field"><label class="f">상태</label><select class="t" id="s-status"><option>토지</option><option>건물</option><option>대기</option><option>완료</option></select></div></div>
+    <div class="row"><div class="col field" style="display:none"><label class="f">현재 단계</label><select class="t" id="s-stage"></select></div><div class="col field"><label class="f">진행률(%)</label><input class="t" id="s-progress" type="number" min="0" max="100" placeholder="60"></div><div class="col field"><label class="f">상태</label><select class="t" id="s-status"><option>토지</option><option>건물</option><option>대기</option><option>완료</option><option>취소</option></select></div></div>
     <div class="field"><label class="f">메모/특이사항</label><textarea class="t" id="s-note" placeholder="예) 자재 추가 입고 예정, 한전 승인 대기 등"></textarea></div>
     <div class="field"><label class="f">공정표 (이미지 첨부)</label><label class="uploadbtn">📅 공정표 업로드<input type="file" accept="image/*" style="display:none" onchange="onChartPick(event)"></label><div class="thumbs" id="s-chart"></div></div>
   </div>
@@ -457,7 +457,7 @@ function nowTime(){ const d=new Date(); return `${pad(d.getHours())}:${pad(d.get
 function nowStamp(){ const d=new Date(); return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function fmtStamp(iso){ if(!iso) return ''; const d=new Date(iso); return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function catClass(c){ return c==='작업 전'?'before':c==='작업 중'?'during':'etc'; }
-function statusClass(s){ return s==='완료'?'done':s==='대기'?'wait':s==='건물'?'bldg':'land'; }
+function statusClass(s){ return s==='완료'?'done':s==='대기'?'wait':s==='취소'?'cancel':s==='건물'?'bldg':'land'; }
 function esc(s){ return (s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
 function byteLen(s){ let b=0; for(const ch of (s||'')){ b+=ch.charCodeAt(0)>127?2:1; } return b; }
 function msgType(s){ if(settings.type==='lms') return 'LMS'; return byteLen(s)<=90?'SMS':'LMS'; }
@@ -704,7 +704,7 @@ function renderCards(){
   box.innerHTML=list.map(s=>{
     const stepper=STAGES.map((st,i)=>{ const p=(s.permits||[])[i]; const cls=p&&p.status==='완료'?'done':p&&p.status==='진행'?'cur':''; return `<div class="stp ${cls}"><div class="c">${p&&p.status==='완료'?'✓':i+1}</div><div class="t">${st}</div></div>`; }).join('');
     const lastP=(s.permits||[]).filter(p=>p.status==='완료').slice(-1)[0];
-    const footLabel=s.status==='완료'?'✅ 설비확인 완료':s.status==='대기'?'⏸ 진행 대기':(lastP?('🔧 최근: '+lastP.name):'🔧 착수 전');
+    const footLabel=s.status==='완료'?'✅ 설비확인 완료':s.status==='취소'?'❌ 취소':s.status==='대기'?'⏸ 진행 대기':(lastP?('🔧 최근: '+lastP.name):'🔧 착수 전');
     const li=(s.inspections||[])[0]; const openN=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
     return `<div class="scard ${statusClass(s.status)}" onclick="openDetail('${s.id}')">
       <div class="sh"><div><h4>${esc(s.name)}</h4><div class="meta"><span class="pill type">${s.type}</span> ${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)}</div></div>
