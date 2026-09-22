@@ -72,6 +72,38 @@
   .scard{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer}
   .scard.delay{border-left:4px solid var(--red)}.scard.caution{border-left:4px solid var(--amber)}.scard.normal{border-left:4px solid var(--green)}
   .scard.done{border-left:4px solid var(--green)}.scard.wait{border-left:4px solid #9aa3b2}.scard.land{border-left:4px solid #b5761f}.scard.bldg{border-left:4px solid var(--blue)}.scard.cancel{border-left:4px solid #c0392b;opacity:.82}
+  /* ── 파이프라인(조밀 행 목록) · 라이트 ── */
+  .pipeline{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .pipeline .plegend{display:flex;gap:15px;flex-wrap:wrap;align-items:center;padding:11px 18px;border-bottom:1px solid var(--line);font-size:12px;color:var(--sub);background:#fafbfd}
+  .pipeline .plegend .lb{color:var(--ink);font-weight:700;margin-right:2px}
+  .pipeline .plegend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+  .plg-done{background:var(--green)}.plg-prog{background:var(--blue)}.plg-wait{background:#d3d9e2}
+  .pwrap{overflow-x:auto}
+  .phead,.prow{display:grid;grid-template-columns:minmax(140px,1.7fr) 1fr 1.25fr minmax(150px,1.7fr) minmax(150px,1.9fr) 0.95fr 0.9fr;gap:12px;align-items:center;padding:11px 18px}
+  .phead{font-size:11.5px;color:var(--sub);font-weight:700;border-bottom:1px solid var(--line);background:#fafbfd}
+  .prow{border-bottom:1px solid var(--line2);cursor:pointer;transition:background .12s}
+  .prow:hover{background:#f5f8fc}.prow:last-child{border-bottom:none}.prow.is-cancel{opacity:.58}
+  .p-name{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.25;overflow:hidden}
+  .p-name small{display:block;font-size:11px;color:var(--sub);font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .p-cap{font-size:14.5px;font-weight:800;color:var(--ink)}.p-cap i{font-size:11px;color:var(--sub);font-weight:600;font-style:normal}
+  .p-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--line2);color:#475569;border:1px solid var(--line);margin-left:6px}
+  .p-owner{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);overflow:hidden}
+  .p-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#fff;flex-shrink:0}
+  .p-prog{display:flex;align-items:center;gap:10px}
+  .p-segs{display:flex;gap:3px;flex:1;min-width:110px}
+  .pseg{flex:1;height:16px;border-radius:3px;background:#e3e7ee}
+  .pseg.done{background:var(--green)}.pseg.prog{background:var(--blue)}
+  .p-pct{font-size:13px;font-weight:800;color:var(--ink);min-width:38px;text-align:right}
+  .p-stage{font-size:12.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .p-status{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700}
+  .p-status .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .pd-done{color:var(--green)}.pd-done .dot{background:var(--green)}
+  .pd-land{color:#b5761f}.pd-land .dot{background:#b5761f}
+  .pd-bldg{color:var(--blue)}.pd-bldg .dot{background:var(--blue)}
+  .pd-wait{color:var(--sub)}.pd-wait .dot{background:#9aa3b2}
+  .pd-cancel{color:#c0392b}.pd-cancel .dot{background:#c0392b}
+  .pipeline .empty{color:var(--sub);padding:34px;text-align:center}
+  @media(max-width:980px){.phead,.prow{min-width:940px}}
   .scard .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.scard .sh h4{margin:0 0 4px;font-size:16px}
   .scard .meta{font-size:12px;color:var(--sub)}.scard .who{font-size:12.5px}
   .stepper{display:flex;align-items:flex-start;overflow-x:auto;padding:4px 0 2px}
@@ -211,7 +243,7 @@
       <span style="flex:1"></span>
       <button class="btn primary sm" onclick="openSite()">+ 현장 추가</button>
     </div>
-    <div class="sgrid" id="site-cards"></div>
+    <div class="pipeline" id="site-cards"></div>
   </section>
 
   <!-- 이슈·점검 -->
@@ -698,23 +730,29 @@ function renderOverview(){
   document.getElementById('distrib').innerHTML=STAGES.map((st,i)=>`<div class="d ${cur[i]?'hot':''}"><b>${cur[i]}</b><span>${st}</span></div>`).join('');
   renderCards();
 }
+function avColor(s){ const pal=['#3d7a5a','#3b6ea5','#8a5a2b','#6b4f9e','#a34a5e','#2f7d8a','#7a6a2f']; let h=0; for(const ch of (s||'x')) h=(h*31+ch.charCodeAt(0))>>>0; return pal[h%pal.length]; }
 function renderCards(){
   const box=document.getElementById('site-cards'), list=visibleSites();
-  if(!list.length){ box.innerHTML='<div class="empty">조건에 맞는 현장이 없습니다.</div>'; return; }
-  box.innerHTML=list.map(s=>{
-    const stepper=STAGES.map((st,i)=>{ const p=(s.permits||[])[i]; const cls=p&&p.status==='완료'?'done':p&&p.status==='진행'?'cur':''; return `<div class="stp ${cls}"><div class="c">${p&&p.status==='완료'?'✓':i+1}</div><div class="t">${st}</div></div>`; }).join('');
+  const legend=`<div class="plegend"><span class="lb">진행 단계</span><span><i class="plg-done"></i>완료</span><span><i class="plg-prog"></i>진행중</span><span><i class="plg-wait"></i>예정·대기</span><span style="margin-left:auto">${list.length}개 현장</span></div>`;
+  const head=`<div class="phead"><div>발전소명 / 사업주</div><div>유형 · 용량</div><div>영업담당 / 연락처</div><div>설치장소</div><div>진행 (공사계약서→설비확인)</div><div>현재 단계</div><div>상태</div></div>`;
+  if(!list.length){ box.innerHTML=legend+'<div class="empty">조건에 맞는 현장이 없습니다.</div>'; return; }
+  const rows=list.map(s=>{
+    const segs=STAGES.map((st,i)=>{ const p=(s.permits||[])[i]; const c=p&&p.status==='완료'?'done':p&&p.status==='진행'?'prog':''; return `<span class="pseg ${c}" title="${st}"></span>`; }).join('');
     const lastP=(s.permits||[]).filter(p=>p.status==='완료').slice(-1)[0];
-    const footLabel=s.status==='완료'?'✅ 설비확인 완료':s.status==='취소'?'❌ 취소':s.status==='대기'?'⏸ 진행 대기':(lastP?('🔧 최근: '+lastP.name):'🔧 착수 전');
-    const li=(s.inspections||[])[0]; const openN=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
-    return `<div class="scard ${statusClass(s.status)}" onclick="openDetail('${s.id}')">
-      <div class="sh"><div><h4>${esc(s.name)}</h4><div class="meta"><span class="pill type">${s.type}</span> ${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)}</div></div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="pill ${statusClass(s.status)}">${s.status}</span>${openN?`<span class="pill warn">🚩 이슈 ${openN}</span>`:''}</div></div>
-      <div class="who muted">👤 ${esc(s.mname)||'—'}${s.owner?' · 사업주 '+esc(s.owner):''}${s.mphone?' · '+esc(s.mphone):''}</div>
-      <div class="stepper">${stepper}</div>
-      <div style="display:flex;align-items:center;gap:10px"><div class="pbar"><i style="width:${s.progress}%"></i></div><b style="font-size:13px;min-width:38px;text-align:right">${s.progress}%</b></div>
-      <div class="foot"><span class="pill ${statusClass(s.status)}">${footLabel}</span>${(s.note?`<span class="safe-mini muted" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(String(s.note).split('\n')[0])}</span>`:'<span style="flex:1"></span>')}<button class="btn sm" onclick="event.stopPropagation();openDetail('${s.id}')">상세</button><button class="btn sm green" onclick="event.stopPropagation();quickSafety('${s.id}')">📩 문자</button></div>
+    const curStage=lastP?lastP.name:(s.status==='취소'?'—':'착수 전');
+    const dcls=statusClass(s.status), mn=(s.mname||'').trim(), av=avColor(mn||s.name);
+    const openN=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
+    return `<div class="prow${s.status==='취소'?' is-cancel':''}" onclick="openDetail('${s.id}')" title="${esc(s.name)}">
+      <div class="p-name">${esc(s.name)}${s.owner?`<small>${esc(s.owner)}</small>`:''}</div>
+      <div><span class="p-badge" style="margin-left:0">${esc(s.type)}</span> <span class="p-cap">${(+s.cap||0).toLocaleString()}<i>kW</i></span></div>
+      <div class="p-owner">${mn?`<span class="p-av" style="background:${av}">${esc(mn[0])}</span><span style="overflow:hidden"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(mn)}</span>${s.mphone?`<small style="color:var(--sub);font-size:11px">${esc(s.mphone)}</small>`:''}</span>`:'<span style="color:var(--sub)">—</span>'}</div>
+      <div class="p-stage" title="${esc(s.loc||'')}">${esc(s.loc)||'—'}</div>
+      <div class="p-prog"><span class="p-segs">${segs}</span><span class="p-pct">${s.progress}%</span></div>
+      <div class="p-stage">${esc(curStage)}</div>
+      <div class="p-status pd-${dcls}"><span class="dot"></span>${s.status}${openN?` <span class="pill warn" style="margin-left:2px">🚩${openN}</span>`:''}</div>
     </div>`;
   }).join('');
+  box.innerHTML=legend+`<div class="pwrap">${head}${rows}</div>`;
 }
 
 /* ════════════ 현장 상세 ════════════ */
