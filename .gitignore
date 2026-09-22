@@ -1,2 +1,6 @@
 .DS_Store
 *.log
+# 실데이터(현장 실명·주소·전화·사업자번호) — public repo 유출 금지
+db_seed_gyeonggi.sql
+sites.json
+relay.local.js

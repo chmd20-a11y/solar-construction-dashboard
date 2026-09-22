@@ -44,6 +44,7 @@
   .pill.before{background:var(--blue-soft);color:var(--blue)}.pill.during{background:var(--amber-soft);color:var(--amber-ink)}
   .pill.etc{background:var(--line2);color:var(--sub)}.pill.ok{background:var(--green-soft);color:var(--green)}.pill.warn{background:var(--red-soft);color:var(--red)}
   .pill.normal{background:var(--green-soft);color:var(--green)}.pill.caution{background:var(--amber-soft);color:var(--amber-ink)}.pill.delay{background:var(--red-soft);color:var(--red)}
+  .pill.done{background:var(--green-soft);color:var(--green)}.pill.wait{background:var(--line2);color:var(--sub)}.pill.land{background:#f4ead6;color:#8a5a12}.pill.bldg{background:var(--blue-soft);color:var(--blue)}
   .pill.sms{background:#eef2ff;color:#4338ca}.pill.lms{background:#f0f6ff;color:#1e6fd8}.pill.auto{background:#ecfdf5;color:#047857}.pill.type{background:#f1f3f8;color:#475569;border:1px solid var(--line)}
   .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
   .btn:hover{border-color:#cfd6e0;background:#fafbfc}
@@ -70,6 +71,7 @@
   .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
   .scard{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer}
   .scard.delay{border-left:4px solid var(--red)}.scard.caution{border-left:4px solid var(--amber)}.scard.normal{border-left:4px solid var(--green)}
+  .scard.done{border-left:4px solid var(--green)}.scard.wait{border-left:4px solid #9aa3b2}.scard.land{border-left:4px solid #b5761f}.scard.bldg{border-left:4px solid var(--blue)}
   .scard .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.scard .sh h4{margin:0 0 4px;font-size:16px}
   .scard .meta{font-size:12px;color:var(--sub)}.scard .who{font-size:12.5px}
   .stepper{display:flex;align-items:flex-start;overflow-x:auto;padding:4px 0 2px}
@@ -190,22 +192,19 @@
 <main>
   <!-- 현황 개요 -->
   <section class="view active" id="v-overview">
-    <h2 class="title">진행 현장 현황</h2>
-    <p class="desc">진행 중인 전 현장의 공정 단계(계약~준공)·진행률·일정·이슈·확인 상태를 한눈에 봅니다.</p>
+    <h2 class="title">발전사업허가 진행 현황</h2>
+    <p class="desc">경기지사 발전사업 현장의 인허가·공정 단계, 진행률, 진행/이슈 상태를 한눈에 봅니다. 카드를 누르면 단계별 일자·진행사항을 확인합니다.</p>
     <div class="kpis">
-      <div class="kpi"><span class="ico">🏗</span><div class="n" id="k-total">0<small>곳</small></div><div class="l">진행 중 현장</div></div>
-      <div class="kpi"><span class="ico">⚡</span><div class="n" id="k-cap">0<small>kW</small></div><div class="l">총 시공 용량</div></div>
-      <div class="kpi"><span class="ico">🚦</span><div class="n" id="k-delay">0<small>곳</small></div><div class="l">지연·주의 현장</div></div>
-      <div class="kpi"><span class="ico">🚩</span><div class="n" id="k-issue">0<small>건</small></div><div class="l">미해결 이슈</div></div>
-      <div class="kpi"><span class="ico">✅</span><div class="n" id="k-ack">0<small>곳</small></div><div class="l">담당자 확인 대기</div></div>
+      <div class="kpi"><span class="ico">🏗</span><div class="n" id="k-total">0<small>곳</small></div><div class="l">전체 현장</div></div>
+      <div class="kpi"><span class="ico">⚡</span><div class="n" id="k-cap">0<small>kW</small></div><div class="l">총 발전 용량</div></div>
+      <div class="kpi"><span class="ico">🚧</span><div class="n" id="k-ack">0<small>곳</small></div><div class="l">진행 중</div></div>
+      <div class="kpi"><span class="ico">⏸</span><div class="n" id="k-delay">0<small>곳</small></div><div class="l">대기 현장</div></div>
+      <div class="kpi"><span class="ico">✅</span><div class="n" id="k-issue">0<small>곳</small></div><div class="l">완료(설비확인)</div></div>
     </div>
     <div class="distrib" id="distrib"></div>
     <div class="filters" id="filters">
       <span class="muted" style="font-size:12px;font-weight:700">상태</span>
-      <span class="fchip on" data-fk="status" data-fv="all">전체</span><span class="fchip" data-fk="status" data-fv="지연">지연</span><span class="fchip" data-fk="status" data-fv="주의">주의</span><span class="fchip" data-fk="status" data-fv="정상">정상</span>
-      <span style="width:1px;height:20px;background:var(--line);margin:0 4px"></span>
-      <span class="muted" style="font-size:12px;font-weight:700">유형</span>
-      <span class="fchip on" data-fk="type" data-fv="all">전체</span><span class="fchip" data-fk="type" data-fv="지붕">지붕</span><span class="fchip" data-fk="type" data-fv="부지">부지</span><span class="fchip" data-fk="type" data-fv="축사">축사</span>
+      <span class="fchip on" data-fk="status" data-fv="all">전체</span><span class="fchip" data-fk="status" data-fv="토지">토지</span><span class="fchip" data-fk="status" data-fv="건물">건물</span><span class="fchip" data-fk="status" data-fv="대기">대기</span><span class="fchip" data-fk="status" data-fv="완료">완료</span>
       <span style="flex:1"></span>
       <button class="btn primary sm" onclick="openSite()">+ 현장 추가</button>
     </div>
@@ -367,14 +366,14 @@
   <div class="mb">
     <input type="hidden" id="s-id">
     <div class="row"><div class="col field" style="flex:2"><label class="f">현장명</label><input class="t" id="s-name" placeholder="예) 김포 물류창고 지붕태양광"></div><div class="col field"><label class="f">사업주 성명</label><input class="t" id="s-owner" placeholder="(주)○○물류 / 홍길동"></div></div>
-    <div class="row"><div class="col field"><label class="f">유형</label><select class="t" id="s-type"><option>지붕</option><option>부지</option><option>축사</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div></div>
+    <div class="row"><div class="col field"><label class="f">설치형태</label><select class="t" id="s-type"><option>토지</option><option>건물</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div></div>
     <div class="row"><div class="col field"><label class="f">위치/주소</label><input class="t" id="s-loc" placeholder="경기 김포시 ..."></div><div class="col field"><label class="f">사업자번호</label><input class="t" id="s-bizno" placeholder="123-45-67890"></div></div>
-    <div class="row"><div class="col field"><label class="f">소장 이름</label><input class="t" id="s-mname" placeholder="홍길동"></div><div class="col field"><label class="f">소장 휴대폰 <span class="muted" style="font-weight:500">(문자 대상)</span></label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
-    <div class="row"><div class="col field"><label class="f">담당자 이름</label><input class="t" id="s-cname" placeholder="김담당"></div><div class="col field"><label class="f">담당자 휴대폰</label><input class="t" id="s-cphone" placeholder="010-0000-0000"></div></div>
-    <div class="row"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel" placeholder="한화 Q.PEAK 575W"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty" placeholder="1069"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel" placeholder="HD500"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty" placeholder="2"></div></div>
-    <div class="row"><div class="col field"><label class="f">시공업체</label><input class="t" id="s-builder" placeholder="해피솔라"></div><div class="col field"><label class="f">토목업체</label><input class="t" id="s-civil" placeholder="○○토건"></div></div>
-    <div class="row"><div class="col field"><label class="f">착공일</label><input class="t" id="s-start" type="date"></div><div class="col field"><label class="f">준공 예정일</label><input class="t" id="s-due" type="date"></div></div>
-    <div class="row"><div class="col field"><label class="f">현재 단계</label><select class="t" id="s-stage"></select></div><div class="col field"><label class="f">진행률(%)</label><input class="t" id="s-progress" type="number" min="0" max="100" placeholder="60"></div><div class="col field"><label class="f">상태</label><select class="t" id="s-status"><option>정상</option><option>주의</option><option>지연</option></select></div></div>
+    <div class="row"><div class="col field"><label class="f">영업/담당</label><input class="t" id="s-mname" placeholder="조대표/화성"></div><div class="col field"><label class="f">연락처 <span class="muted" style="font-weight:500">(문자 대상)</span></label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
+    <div class="row" style="display:none"><div class="col field"><label class="f">예비1</label><input class="t" id="s-cname"></div><div class="col field"><label class="f">예비2</label><input class="t" id="s-cphone"></div></div>
+    <div class="row" style="display:none"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty"></div></div>
+    <div class="row" style="display:none"><div class="col field"><label class="f">시공업체</label><input class="t" id="s-builder"></div><div class="col field"><label class="f">토목업체</label><input class="t" id="s-civil"></div></div>
+    <div class="row" style="display:none"><div class="col field"><label class="f">착공일</label><input class="t" id="s-start" type="date"></div><div class="col field"><label class="f">준공 예정일</label><input class="t" id="s-due" type="date"></div></div>
+    <div class="row"><div class="col field" style="display:none"><label class="f">현재 단계</label><select class="t" id="s-stage"></select></div><div class="col field"><label class="f">진행률(%)</label><input class="t" id="s-progress" type="number" min="0" max="100" placeholder="60"></div><div class="col field"><label class="f">상태</label><select class="t" id="s-status"><option>토지</option><option>건물</option><option>대기</option><option>완료</option></select></div></div>
     <div class="field"><label class="f">메모/특이사항</label><textarea class="t" id="s-note" placeholder="예) 자재 추가 입고 예정, 한전 승인 대기 등"></textarea></div>
     <div class="field"><label class="f">공정표 (이미지 첨부)</label><label class="uploadbtn">📅 공정표 업로드<input type="file" accept="image/*" style="display:none" onchange="onChartPick(event)"></label><div class="thumbs" id="s-chart"></div></div>
   </div>
@@ -432,7 +431,7 @@
 /* ═══════════════════════════════════════════════════════════════
    태양광 시공현장 종합 현황 — 앱 로직 (로컬/클라우드 자동전환)
    ═══════════════════════════════════════════════════════════════ */
-const STAGES=['계약','인허가','설계','자재입고','토목·기초','구조물','모듈설치','전기공사','계통연계','준공검사'];
+const STAGES=['공사계약서','발전허가','개발행위','PPA접수','공사계획','사용전검사','준공검사','사업개시','설비확인'];
 // 로그인 ID → 실제 이메일 매핑 (이메일 안 쳐도 되게. 기존 happysolar/상담일지 계정 공용)
 const LOGIN_MAP={ master:'master@example.com', 관리자:'admin@example.com', admin:'admin@example.com', 본사:'hq@example.com', 광주:'hq@example.com', 장흥:'jangheung@example.com', 영암:'yeongam@example.com', 평택:'pyeongtaek@example.com', 파주:'paju@example.com', 영상팀:'video@example.com', 영상:'video@example.com' };
 const MODE = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) ? 'cloud' : 'local';
@@ -455,7 +454,7 @@ function nowTime(){ const d=new Date(); return `${pad(d.getHours())}:${pad(d.get
 function nowStamp(){ const d=new Date(); return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function fmtStamp(iso){ if(!iso) return ''; const d=new Date(iso); return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function catClass(c){ return c==='작업 전'?'before':c==='작업 중'?'during':'etc'; }
-function statusClass(s){ return s==='지연'?'delay':s==='주의'?'caution':'normal'; }
+function statusClass(s){ return s==='완료'?'done':s==='대기'?'wait':s==='건물'?'bldg':'land'; }
 function esc(s){ return (s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
 function byteLen(s){ let b=0; for(const ch of (s||'')){ b+=ch.charCodeAt(0)>127?2:1; } return b; }
 function msgType(s){ if(settings.type==='lms') return 'LMS'; return byteLen(s)<=90?'SMS':'LMS'; }
@@ -465,7 +464,7 @@ function isConnected(){ return !!relayBase(); }
 function dday(due){ if(!due) return null; return Math.ceil((new Date(due)-new Date())/86400000); }
 function ddayTxt(due){ const d=dday(due); if(d===null) return '—'; if(d===0) return 'D-DAY'; return d>0?('D-'+d):('D+'+(-d)); }
 function fmtDate(s){ if(!s) return '미정'; const d=new Date(s); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
-function stageDate(site,i){ if(!site.start||!site.due) return ''; const a=new Date(site.start),b=new Date(site.due); const d=new Date(a.getTime()+(b.getTime()-a.getTime())*((i+1)/STAGES.length)); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
+function stageDate(site,i){ const p=(site.permits||[])[i]; return (p&&p.date)?fmtDate(p.date):''; }
 function getSite(id){ return sites.find(x=>x.id===id); }
 function fill(body,site){ return (body||'').replace(/\{\{현장명\}\}/g,site?.name||'(현장)').replace(/\{\{소장명\}\}/g,site?.mname||'(소장)').replace(/\{\{담당자명\}\}/g,site?.cname||'(담당자)').replace(/\{\{날짜\}\}/g,todayStr()).replace(/\{\{시간\}\}/g,nowTime()); }
 function copyVar(v){ copyText(v); toast('복사됨: '+v,true); }
@@ -545,15 +544,11 @@ function loadLocal(){ const g=(k,d)=>{ try{ return JSON.parse(localStorage.getIt
   sites=g(LS.sites,null); presets=g(LS.presets,null); logs=g(LS.logs,[]); settings=g(LS.settings,{auto:false,type:'auto',id:'',key:'',sender:''}); marks=g(LS.marks,{});
   if(!sites||!presets){ seedLocal(); } profiles=[]; }
 function seedLocal(){
+  const P=(a)=>STAGES.map(n=>({name:n,date:(a[n]||''),status:a[n]?'완료':'예정'}));
   sites=[
-    {id:uid(),name:'평택 물류센터 지붕태양광',owner:'(주)평택물류',type:'지붕',cap:620,loc:'경기 평택',mname:'윤소장',mphone:'010-5501-2200',cname:'한담당',cphone:'010-5501-3300',start:'2026-06-10',due:'2026-09-18',stage:9,progress:96,status:'정상',note:'이번 주 사용전검사 예정.',moduleModel:'한화 Q.PEAK DUO 580W',moduleQty:1069,inverterModel:'HD500',inverterQty:2,builder:'해피솔라',civil:'대명토건',processChart:'',permits:[],ackVersion:1,issues:[],inspections:[],acks:[]},
-    {id:uid(),name:'화성 공장 지붕태양광',owner:'화성산업(주)',type:'지붕',cap:750,loc:'경기 화성',mname:'최소장',mphone:'010-8888-9999',cname:'정담당',cphone:'010-1010-2020',start:'2026-05-20',due:'2026-09-30',stage:8,progress:85,status:'지연',note:'한전 계통연계 승인 대기.',moduleModel:'한화 Q.PEAK 575W',moduleQty:1304,inverterModel:'선그로우 SG250HX',inverterQty:3,builder:'해피솔라',civil:'정우토목',processChart:'',permits:[],ackVersion:1,
-      issues:[{id:uid(),date:'2026-09-05',cat:'문제',title:'한전 계통연계 승인 지연',content:'계통연계 신청 후 한전 회신 지연으로 준공 일정 차질 우려.',reporter:'정담당',actionby:'공사팀장',actiondate:'2026-09-08',action:'한전 지사 방문·협의, 서류 보완 제출 지시.',status:'조치중',resolvedate:'',resolution:'',photos:[]}],
-      inspections:[{id:uid(),date:'2026-09-10',inspector:'정담당',result:'문제 발견',note:'인버터 기초 앵커 일부 유격 확인. 재시공 필요.',photos:[]}],
-      acks:[{name:'최소장 소장',role:'현장소장',at:'09/12 08:10'},{name:'정담당',role:'현장담당',at:''},{name:'안전관리자',role:'안전관리',at:''}]},
-    {id:uid(),name:'이천 부지 태양광',owner:'이천에너지(주)',type:'부지',cap:990,loc:'경기 이천',mname:'강소장',mphone:'',cname:'백담당',cphone:'010-9090-8080',start:'2026-09-10',due:'2027-01-31',stage:1,progress:10,status:'정상',note:'개발행위허가 접수 단계. 소장 연락처 미등록.',moduleModel:'미정',moduleQty:0,inverterModel:'미정',inverterQty:0,builder:'해피솔라',civil:'미정',processChart:'',
-      permits:[{name:'개발행위허가',status:'진행',date:'2026-09-10'},{name:'전기사업허가(발전사업)',status:'예정',date:''},{name:'사용전검사',status:'예정',date:''}],ackVersion:1,issues:[],inspections:[],
-      acks:[{name:'강소장 소장',role:'현장소장',at:''},{name:'백담당',role:'현장담당',at:''}]},
+    {id:uid(),name:'(예시) 연천 토지 1호',owner:'홍길동',type:'토지',cap:323.84,loc:'경기 연천군 백학면',mname:'연천',mphone:'010-0000-0000',cname:'',cphone:'',stage:8,progress:100,status:'완료',note:'설비확인 완료',moduleModel:'',moduleQty:0,inverterModel:'',inverterQty:0,builder:'',civil:'',processChart:'',permits:P({'발전허가':'2024-12-03','개발행위':'2025-02-11','PPA접수':'2025-02-18','설비확인':'2025-09-08'}),ackVersion:1,issues:[],inspections:[],acks:[]},
+    {id:uid(),name:'(예시) 화성 건물 1호',owner:'전지혜',type:'건물',cap:49.92,loc:'경기 화성시 정남면',mname:'조대표/화성',mphone:'010-0000-0001',cname:'',cphone:'',stage:2,progress:33,status:'건물',note:'개발행위 진행중',moduleModel:'',moduleQty:0,inverterModel:'',inverterQty:0,builder:'',civil:'',processChart:'',permits:P({'발전허가':'2025-02-12','개발행위':'2025-02-20','PPA접수':'2025-03-17'}),ackVersion:1,issues:[],inspections:[],acks:[]},
+    {id:uid(),name:'(예시) 가월 토지 대기',owner:'김대기',type:'토지',cap:100,loc:'경기 이천시',mname:'조대표/이천',mphone:'010-0000-0002',cname:'',cphone:'',stage:1,progress:22,status:'대기',note:'변전용량 부족 / 취하원 제출',moduleModel:'',moduleQty:0,inverterModel:'',inverterQty:0,builder:'',civil:'',processChart:'',permits:P({'발전허가':'2025-01-10','개발행위':'2025-02-01'}),ackVersion:1,issues:[],inspections:[],acks:[]},
   ];
   presets=[
     {id:uid(),category:'작업 전',title:'작업 전 안전점검(TBM) 안내',body:'[{{날짜}} 작업 전 안전점검]\n{{현장명}} {{소장명}} 소장님, 안전한 하루 되십시오.\n1) 5분 TBM 실시\n2) 안전모·안전화·안전대 착용\n3) 고소작업 발판·난간 고정\n4) 감전예방 활선 이격 유지',sched:{on:true,freq:'weekday',time:'07:00',weekday:'1'}},
@@ -690,10 +685,10 @@ function visibleSites(){ return sites.filter(s=>(filter.status==='all'||s.status
 function renderOverview(){
   document.getElementById('k-total').innerHTML=sites.length+'<small>곳</small>';
   document.getElementById('k-cap').innerHTML=sites.reduce((a,s)=>a+(+s.cap||0),0).toLocaleString()+'<small>kW</small>';
-  document.getElementById('k-delay').innerHTML=sites.filter(s=>s.status!=='정상').length+'<small>곳</small>';
+  document.getElementById('k-delay').innerHTML=sites.filter(s=>s.status==='대기').length+'<small>곳</small>';
   const openIss=sites.reduce((a,s)=>a+(s.issues||[]).filter(i=>i.status!=='처리완료').length,0);
-  document.getElementById('k-issue').innerHTML=openIss+'<small>건</small>'; document.getElementById('b-issues').textContent=openIss;
-  document.getElementById('k-ack').innerHTML=sites.filter(s=>acksFor(s).some(a=>!a.at)).length+'<small>곳</small>';
+  document.getElementById('k-issue').innerHTML=sites.filter(s=>s.status==='완료').length+'<small>곳</small>'; document.getElementById('b-issues').textContent=openIss;
+  document.getElementById('k-ack').innerHTML=sites.filter(s=>s.status==='토지'||s.status==='건물').length+'<small>곳</small>';
   const todayPfx=`${pad(new Date().getMonth()+1)}/${pad(new Date().getDate())}`;
   const cur=STAGES.map((_,i)=>sites.filter(s=>s.stage===i).length);
   document.getElementById('distrib').innerHTML=STAGES.map((st,i)=>`<div class="d ${cur[i]?'hot':''}"><b>${cur[i]}</b><span>${st}</span></div>`).join('');
@@ -703,17 +698,17 @@ function renderCards(){
   const box=document.getElementById('site-cards'), list=visibleSites();
   if(!list.length){ box.innerHTML='<div class="empty">조건에 맞는 현장이 없습니다.</div>'; return; }
   box.innerHTML=list.map(s=>{
-    const stepper=STAGES.map((st,i)=>{ const cls=i<s.stage?'done':i===s.stage?'cur':''; return `<div class="stp ${cls}"><div class="c">${i<s.stage?'✓':i+1}</div><div class="t">${st}</div></div>`; }).join('');
-    const d=dday(s.due), ddCls=s.status==='지연'?'delay':(d!==null&&d<=7?'caution':'etc');
+    const stepper=STAGES.map((st,i)=>{ const p=(s.permits||[])[i]; const cls=p&&p.status==='완료'?'done':p&&p.status==='진행'?'cur':''; return `<div class="stp ${cls}"><div class="c">${p&&p.status==='완료'?'✓':i+1}</div><div class="t">${st}</div></div>`; }).join('');
+    const lastP=(s.permits||[]).filter(p=>p.status==='완료').slice(-1)[0];
+    const footLabel=s.status==='완료'?'✅ 설비확인 완료':s.status==='대기'?'⏸ 진행 대기':(lastP?('🔧 최근: '+lastP.name):'🔧 착수 전');
     const li=(s.inspections||[])[0]; const openN=(s.issues||[]).filter(i=>i.status!=='처리완료').length;
-    const acks=acksFor(s), ackDone=acks.filter(a=>a.at).length, ackTot=acks.length;
     return `<div class="scard ${statusClass(s.status)}" onclick="openDetail('${s.id}')">
       <div class="sh"><div><h4>${esc(s.name)}</h4><div class="meta"><span class="pill type">${s.type}</span> ${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)}</div></div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="pill ${statusClass(s.status)}">${s.status}</span>${openN?`<span class="pill warn">🚩 이슈 ${openN}</span>`:''}${ackTot?`<span class="pill ${ackDone<ackTot?'warn':'ok'}">✅ ${ackDone}/${ackTot} 확인</span>`:''}</div></div>
-      <div class="who muted">👷 ${esc(s.mname)} 소장 ${s.mphone?'· '+esc(s.mphone):'<span class="pill warn" style="margin-left:2px">번호없음</span>'}</div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="pill ${statusClass(s.status)}">${s.status}</span>${openN?`<span class="pill warn">🚩 이슈 ${openN}</span>`:''}</div></div>
+      <div class="who muted">👤 ${esc(s.mname)||'—'}${s.owner?' · 사업주 '+esc(s.owner):''}${s.mphone?' · '+esc(s.mphone):''}</div>
       <div class="stepper">${stepper}</div>
       <div style="display:flex;align-items:center;gap:10px"><div class="pbar"><i style="width:${s.progress}%"></i></div><b style="font-size:13px;min-width:38px;text-align:right">${s.progress}%</b></div>
-      <div class="foot"><span class="pill ${ddCls}">🏁 준공 ${fmtDate(s.due)} · ${ddayTxt(s.due)}</span><span class="safe-mini muted">🔍 ${li?('점검 '+li.date+' '+(li.result==='문제 발견'?'<span style="color:var(--red)">문제발견</span>':'이상없음')):'점검 없음'}</span><span style="flex:1"></span><button class="btn sm" onclick="event.stopPropagation();openDetail('${s.id}')">상세</button><button class="btn sm green" onclick="event.stopPropagation();quickSafety('${s.id}')">📩 안전안내</button></div>
+      <div class="foot"><span class="pill ${statusClass(s.status)}">${footLabel}</span>${(s.note?`<span class="safe-mini muted" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(String(s.note).split('\n')[0])}</span>`:'<span style="flex:1"></span>')}<button class="btn sm" onclick="event.stopPropagation();openDetail('${s.id}')">상세</button><button class="btn sm green" onclick="event.stopPropagation();quickSafety('${s.id}')">📩 문자</button></div>
     </div>`;
   }).join('');
 }
@@ -729,42 +724,41 @@ function renderDetail(){
   const acks=acksFor(s), ackTot=acks.length, ackDone=acks.filter(a=>a.at).length;
   const content=detailTab==='공정'?renderDetailProcess(s):detailTab==='이슈'?renderDetailIssues(s):detailTab==='점검'?renderDetailInsp(s):renderDetailAck(s);
   document.getElementById('d-body').innerHTML=`
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><span class="pill type">${s.type}</span><span class="pill ${statusClass(s.status)}">${s.status}</span><span class="muted" style="font-size:12.5px">${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)} · 👷 ${esc(s.mname)} 소장</span></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><span class="pill type">${s.type}</span><span class="pill ${statusClass(s.status)}">${s.status}</span><span class="muted" style="font-size:12.5px">${(+s.cap||0).toLocaleString()}kW · ${esc(s.loc)}${s.mname?' · 👤 '+esc(s.mname):''}</span></div>
     <div class="dtabs"><button class="${detailTab==='공정'?'active':''}" onclick="setDetailTab('공정')">📅 공정</button><button class="${detailTab==='이슈'?'active':''}" onclick="setDetailTab('이슈')">🚩 이슈<span class="c">${openN?openN+'/':''}${issN}</span></button><button class="${detailTab==='점검'?'active':''}" onclick="setDetailTab('점검')">🔍 점검<span class="c">${inspN}</span></button><button class="${detailTab==='확인'?'active':''}" onclick="setDetailTab('확인')">✅ 확인<span class="c">${ackDone}/${ackTot}</span></button></div>${content}`;
 }
 function parseModuleWatt(m){ const x=String(m||'').match(/(\d+(?:\.\d+)?)\s*W\b/i); return x?parseFloat(x[1]):null; }
 function stripModuleWatt(m){ return String(m||'').replace(/\s*\d+(?:\.\d+)?\s*W\b/i,'').trim(); }
 function parseInvCap(m){ const x=String(m||'').match(/(\d{2,4})/); return x?parseInt(x[1],10):null; }
 function renderDetailProcess(s){
-  const tl=STAGES.map((st,i)=>{ const cls=i<s.stage?'done':i===s.stage?'cur':''; const last=i===STAGES.length-1; return `<li class="${cls}"><div class="mk"><div class="b"></div>${last?'':'<div class="ln"></div>'}</div><div class="ct"><b>${i+1}. ${st}</b> ${i===s.stage?'<span class="pill caution" style="margin-left:4px">진행중</span>':i<s.stage?'<span class="pill normal" style="margin-left:4px">완료</span>':''}<div class="dt">예정 ${stageDate(s,i)||'—'}</div></div></li>`; }).join('');
+  const tl=STAGES.map((st,i)=>{ const p=(s.permits||[])[i]; const done=p&&p.status==='완료'; const cur=p&&p.status==='진행'; const cls=done?'done':cur?'cur':''; const last=i===STAGES.length-1; const memo=(p&&p.memo)?` <span class="muted" style="font-size:11px">· ${esc(p.memo)}</span>`:''; return `<li class="${cls}"><div class="mk"><div class="b"></div>${last?'':'<div class="ln"></div>'}</div><div class="ct"><b>${i+1}. ${st}</b> ${cur?'<span class="pill caution" style="margin-left:4px">진행중</span>':done?'<span class="pill normal" style="margin-left:4px">완료</span>':''}<div class="dt">${stageDate(s,i)||'—'}${memo}</div></div></li>`; }).join('');
   return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="pbar"><i style="width:${s.progress}%"></i></div><b>${s.progress}%</b></div>
     <div class="sec-t">📋 기본 정보</div>
     <table class="dtbl">
       <tr><th>사업주</th><td>${esc(s.owner)||'—'}</td></tr>
+      <tr><th>설치형태</th><td>${esc(s.type)||'—'}</td></tr>
       <tr><th>용량</th><td>${(+s.cap||0).toLocaleString()} kW</td></tr>
-      <tr><th>시공/토목</th><td>${esc(s.builder)||'—'} / ${esc(s.civil)||'—'}</td></tr>
-      <tr><th>소장</th><td>${esc(s.mname)||'—'} ${s.mphone?'· '+esc(s.mphone):'<span class="pill warn">번호없음</span>'}</td></tr>
-      <tr><th>담당자</th><td>${esc(s.cname)||'—'} ${s.cphone?'· '+esc(s.cphone):''}</td></tr>
-      <tr><th>착공/준공</th><td>${fmtDate(s.start)} ~ ${fmtDate(s.due)} <span class="pill ${s.status==='지연'?'delay':'etc'}" style="margin-left:4px">${ddayTxt(s.due)}</span></td></tr>
-      <tr><th>메모</th><td>${esc(s.note)||'—'}</td></tr>
+      <tr><th>영업/담당</th><td>${esc(s.mname)||'—'}</td></tr>
+      <tr><th>연락처</th><td>${esc(s.mphone)||'—'}</td></tr>
+      ${s.bizno?`<tr><th>사업자번호</th><td>${esc(s.bizno)}</td></tr>`:''}
+      <tr><th>진행사항</th><td style="white-space:pre-wrap">${esc(s.note)||'—'}</td></tr>
     </table>
-    <div class="sec-t">📦 주요 기자재 현황</div>
+    ${(s.moduleModel||s.moduleQty||s.inverterModel||s.inverterQty)?`<div class="sec-t">📦 주요 기자재 현황</div>
     <table class="dtbl">
       <thead><tr><th>구분</th><th>모델</th><th>용량</th><th>수량</th></tr></thead>
       <tbody>
         <tr><th>모듈</th><td>${esc(stripModuleWatt(s.moduleModel)||s.moduleModel||'—')}</td><td>${(w=>w!=null?w+'W':'—')(parseModuleWatt(s.moduleModel))}</td><td>${s.moduleQty?(+s.moduleQty).toLocaleString()+'장':'—'}</td></tr>
         <tr><th>인버터</th><td>${esc(s.inverterModel)||'—'}</td><td>${(c=>c!=null?c+'kW':'—')(parseInvCap(s.inverterModel))}</td><td>${s.inverterQty?s.inverterQty+'대':'—'}</td></tr>
-        <tr class="sum"><th>시공 용량</th><td colspan="3">${(()=>{const w=parseModuleWatt(s.moduleModel),q=+s.moduleQty||0;return (w&&q)?(w*q/1000).toLocaleString(undefined,{maximumFractionDigits:1})+' KW':'—';})()} <span class="muted" style="font-weight:600;font-size:11.5px">(모듈용량 × 수량 ÷ 1,000)</span></td></tr>
       </tbody>
-    </table>
+    </table>`:''}
     ${renderPermits(s)}
     ${s.processChart?`<h4 style="margin:16px 0 8px;font-size:14px">📅 공정표</h4><img src="${s.processChart}" onclick="openImg(this.src)" style="width:100%;height:auto;max-height:340px;object-fit:contain;background:var(--line2);border:1px solid var(--line);border-radius:10px;cursor:pointer">`:''}
-    <h4 style="margin:16px 0 10px;font-size:14px">🗂 공정 단계 (계약~준공)</h4><ul class="tl" style="list-style:none;margin:0;padding:0">${tl}</ul>`;
+    <h4 style="margin:16px 0 10px;font-size:14px">🗂 인허가·공정 단계</h4><ul class="tl" style="list-style:none;margin:0;padding:0">${tl}</ul>`;
 }
 function renderPermits(s){
   const arr=s.permits||[];
-  const rows=arr.map((p,i)=>{ const cls=p.status==='완료'?'ok':p.status==='진행'?'caution':'etc'; return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="flex:1;font-size:13px">${esc(p.name)}</span><input type="date" value="${p.date||''}" onchange="setPermitDate('${s.id}',${i},this.value)" style="width:148px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px"><span class="pill ${cls}" style="cursor:pointer;min-width:44px;justify-content:center" onclick="cyclePermit('${s.id}',${i})">${p.status}</span><button class="btn sm danger" onclick="removePermit('${s.id}',${i})">×</button></div>`; }).join('');
-  return `<div class="card pad" style="background:#fafbfd;border:1px dashed var(--line);margin-top:6px"><div class="subhdr" style="margin-bottom:9px"><b style="font-size:13.5px">🧾 인허가 상세</b><span class="muted" style="font-size:11px">상태 클릭 → 예정·진행·완료</span></div>${rows||'<div class="muted" style="font-size:12.5px;margin-bottom:8px">등록된 인허가 항목이 없습니다.</div>'}<div style="display:flex;gap:6px;margin-top:8px"><input class="t" id="permit-new-${s.id}" placeholder="항목명 (예: 개발행위허가)" style="flex:1;padding:7px 10px"><button class="btn sm primary" onclick="addPermit('${s.id}')">+ 추가</button></div></div>`;
+  const rows=arr.map((p,i)=>{ const cls=p.status==='완료'?'ok':p.status==='진행'?'caution':'etc'; const memo=p.memo?`<div class="muted" style="font-size:11px;margin:1px 0 0 2px">· ${esc(p.memo)}</div>`:''; return `<div style="margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:13px">${esc(p.name)}</span><input type="date" value="${p.date||''}" onchange="setPermitDate('${s.id}',${i},this.value)" style="width:148px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px"><span class="pill ${cls}" style="cursor:pointer;min-width:44px;justify-content:center" onclick="cyclePermit('${s.id}',${i})">${p.status}</span><button class="btn sm danger" onclick="removePermit('${s.id}',${i})">×</button></div>${memo}</div>`; }).join('');
+  return `<div class="card pad" style="background:#fafbfd;border:1px dashed var(--line);margin-top:6px"><div class="subhdr" style="margin-bottom:9px"><b style="font-size:13.5px">🧾 단계별 인허가 일자</b><span class="muted" style="font-size:11px">상태 클릭 → 예정·진행·완료</span></div>${rows||'<div class="muted" style="font-size:12.5px;margin-bottom:8px">등록된 단계가 없습니다.</div>'}<div style="display:flex;gap:6px;margin-top:8px"><input class="t" id="permit-new-${s.id}" placeholder="항목명 (예: 개발행위)" style="flex:1;padding:7px 10px"><button class="btn sm primary" onclick="addPermit('${s.id}')">+ 추가</button></div></div>`;
 }
 async function cyclePermit(id,i){ const s=getSite(id); const o=['예정','진행','완료']; const p=s.permits[i]; p.status=o[(o.indexOf(p.status)+1)%3]; if(p.status==='완료'&&!p.date)p.date=todayISO(); await DB.saveSite(s); await reload(); renderDetail(); }
 async function setPermitDate(id,i,v){ const s=getSite(id); s.permits[i].date=v; await DB.saveSite(s); }
@@ -824,11 +818,11 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
   const v=(k,d)=>document.getElementById(k).value=(s?(s[d==null?k:d]??''):''); // not used
   document.getElementById('s-id').value=s?s.id:'';
   const set=(id2,val)=>document.getElementById(id2).value=val;
-  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'지붕'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):''); set('s-bizno',s?(s.bizno||''):'');
+  set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'토지'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):''); set('s-bizno',s?(s.bizno||''):'');
   set('s-mname',s?(s.mname||''):''); set('s-mphone',s?(s.mphone||''):''); set('s-cname',s?(s.cname||''):''); set('s-cphone',s?(s.cphone||''):'');
   set('s-mmodel',s?(s.moduleModel||''):''); set('s-mqty',s?(s.moduleQty||''):''); set('s-imodel',s?(s.inverterModel||''):''); set('s-iqty',s?(s.inverterQty||''):'');
   set('s-builder',s?(s.builder||''):''); set('s-civil',s?(s.civil||''):''); set('s-start',s?(s.start||''):''); set('s-due',s?(s.due||''):'');
-  set('s-stage',s?s.stage:0); set('s-progress',s?s.progress:0); set('s-status',s?s.status:'정상'); set('s-note',s?(s.note||''):'');
+  set('s-stage',s?s.stage:0); set('s-progress',s?s.progress:0); set('s-status',s?s.status:'토지'); set('s-note',s?(s.note||''):'');
   sChart=s?(s.processChart||''):''; renderChartThumb(); openModal('site-modal');
 }
 async function saveSite(){
