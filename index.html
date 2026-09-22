@@ -210,7 +210,7 @@
   <button data-mod="photos">📸 시공 사진</button>
   <button data-mod="members" id="mod-members" style="display:none">👥 계정관리</button>
   <button data-mod="audit" id="mod-audit" style="display:none">🧾 로그</button>
-  <button data-mod="verify">📋 공문 검증</button>
+  <button data-mod="verify" id="mod-verify" style="display:none">📋 공문 검증</button>
 </nav>
 
 <nav class="subs" id="subs">
@@ -691,6 +691,7 @@ function showApp(){
   const isAdmin=(me&&me.role==='admin'&&me.approved);
   document.getElementById('mod-audit').style.display=isAdmin?'flex':'none';
   document.getElementById('mod-members').style.display=isAdmin?'flex':'none';
+  document.getElementById('mod-verify').style.display=isAdmin?'flex':'none';
 }
 let rtTimer=null;
 function subscribeRealtime(){
