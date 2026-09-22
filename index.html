@@ -63,8 +63,11 @@
   .kpi .n{font-size:26px;font-weight:800;letter-spacing:-.5px}.kpi .n small{font-size:14px;font-weight:700;color:var(--sub)}
   .kpi .l{font-size:12.5px;color:var(--sub);margin-top:2px}.kpi .ico{font-size:20px;float:right}
   .distrib{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
-  .distrib .d{flex:1;min-width:78px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 8px;text-align:center}
+  .distrib .d{flex:1;min-width:78px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 8px;text-align:center;cursor:pointer;position:relative;transition:border-color .12s,box-shadow .12s}
+  .distrib .d:hover{border-color:var(--amber);box-shadow:0 2px 8px rgba(255,143,0,.15)}
   .distrib .d b{display:block;font-size:18px;font-weight:800}.distrib .d span{font-size:10.5px;color:var(--sub)}.distrib .d.hot{border-color:var(--amber);background:var(--amber-soft)}
+  .distrib .d.sel{border-color:var(--amber);background:var(--amber);box-shadow:0 2px 10px rgba(255,143,0,.35)}.distrib .d.sel b{color:#3a2400}.distrib .d.sel span{color:#5a3a00}
+  .distrib .d .dx{position:absolute;top:3px;right:5px;font-size:12px;font-weight:800;color:#7a4a00;line-height:1}
   .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
   .fchip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--sub);cursor:pointer}
   .fchip.on{background:var(--dark);color:#fff;border-color:var(--dark)}
@@ -474,7 +477,7 @@ let sb=null; if(MODE==='cloud') sb=window.supabase.createClient(window.SUPABASE_
 
 /* 현재 데이터 (전역) */
 let sites=[], presets=[], logs=[], settings={auto:false,type:'auto',id:'',key:'',sender:''}, profiles=[], me=null;
-let filter={status:'all',type:'all'}, searchQ='', activeMod='overview', activeSub='shome';
+let filter={status:'all',type:'all',stage:null}, searchQ='', activeMod='overview', activeSub='shome';
 const LS={ sites:'const_sites_v3', presets:'const_presets_v3', logs:'const_logs_v3', settings:'const_settings_v3', marks:'const_marks_v3' };
 let marks={};
 
@@ -728,9 +731,11 @@ function showSub(sub){ activeSub=sub; document.querySelectorAll('#subs button').
 function gotoSafety(sub){ document.querySelector('#mods button[data-mod="safety"]').click(); if(sub) setTimeout(()=>showSub(sub),20); }
 
 /* ════════════ 현황 개요 ════════════ */
-document.querySelectorAll('#filters .fchip').forEach(c=>{ c.onclick=()=>{ filter[c.dataset.fk]=c.dataset.fv; document.querySelectorAll(`#filters .fchip[data-fk="${c.dataset.fk}"]`).forEach(x=>x.classList.toggle('on',x===c)); renderCards(); }; });
-function visibleSites(){ const q=searchQ.trim().toLowerCase(); const hit=s=>[s.name,s.mname,s.owner,s.loc].some(v=>(v||'').toLowerCase().includes(q)); return sites.filter(s=>(filter.status==='all'||s.status===filter.status)&&(filter.type==='all'||s.type===filter.type)&&(!q||hit(s))); }
-function onSearch(v){ searchQ=v||''; const q=searchQ.trim(), el=document.getElementById('search-count'); if(el) el.textContent=q?`검색 “${q}” · ${visibleSites().length}건`:''; renderCards(); }
+document.querySelectorAll('#filters .fchip').forEach(c=>{ c.onclick=()=>{ filter[c.dataset.fk]=c.dataset.fv; document.querySelectorAll(`#filters .fchip[data-fk="${c.dataset.fk}"]`).forEach(x=>x.classList.toggle('on',x===c)); renderOverview(); }; });
+function siteMatchesSF(s){ const q=searchQ.trim().toLowerCase(); const hit=q?[s.name,s.mname,s.owner,s.loc].some(v=>(v||'').toLowerCase().includes(q)):true; return (filter.status==='all'||s.status===filter.status)&&(filter.type==='all'||s.type===filter.type)&&hit; }
+function visibleSites(){ return sites.filter(s=>siteMatchesSF(s)&&(filter.stage==null||s.stage===filter.stage)); }
+function toggleStageFilter(i){ filter.stage=(filter.stage===i)?null:i; renderOverview(); }
+function onSearch(v){ searchQ=v||''; renderOverview(); const q=searchQ.trim(), el=document.getElementById('search-count'); if(el) el.textContent=q?`검색 “${q}” · ${visibleSites().length}건`:''; }
 function renderOverview(){
   document.getElementById('k-total').innerHTML=sites.length+'<small>곳</small>';
   document.getElementById('k-cap').innerHTML=sites.reduce((a,s)=>a+(+s.cap||0),0).toLocaleString()+'<small>kW</small>';
@@ -739,8 +744,9 @@ function renderOverview(){
   document.getElementById('k-issue').innerHTML=sites.filter(s=>s.status==='완료').length+'<small>곳</small>'; document.getElementById('b-issues').textContent=openIss;
   document.getElementById('k-ack').innerHTML=sites.filter(s=>s.status==='토지'||s.status==='건물').length+'<small>곳</small>';
   const todayPfx=`${pad(new Date().getMonth()+1)}/${pad(new Date().getDate())}`;
-  const cur=STAGES.map((_,i)=>sites.filter(s=>s.stage===i).length);
-  document.getElementById('distrib').innerHTML=STAGES.map((st,i)=>`<div class="d ${cur[i]?'hot':''}"><b>${cur[i]}</b><span>${st}</span></div>`).join('');
+  const base=sites.filter(siteMatchesSF);
+  const cur=STAGES.map((_,i)=>base.filter(s=>s.stage===i).length);
+  document.getElementById('distrib').innerHTML=STAGES.map((st,i)=>`<div class="d ${cur[i]?'hot':''} ${filter.stage===i?'sel':''}" onclick="toggleStageFilter(${i})" title="${esc(st)} 단계 ${cur[i]}건 보기">${filter.stage===i?'<span class="dx">×</span>':''}<b>${cur[i]}</b><span>${st}</span></div>`).join('');
   renderCards();
 }
 function avColor(s){ const pal=['#3d7a5a','#3b6ea5','#8a5a2b','#6b4f9e','#a34a5e','#2f7d8a','#7a6a2f']; let h=0; for(const ch of (s||'x')) h=(h*31+ch.charCodeAt(0))>>>0; return pal[h%pal.length]; }
