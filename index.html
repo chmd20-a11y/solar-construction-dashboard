@@ -205,6 +205,9 @@
     <div class="filters" id="filters">
       <span class="muted" style="font-size:12px;font-weight:700">상태</span>
       <span class="fchip on" data-fk="status" data-fv="all">전체</span><span class="fchip" data-fk="status" data-fv="토지">토지</span><span class="fchip" data-fk="status" data-fv="건물">건물</span><span class="fchip" data-fk="status" data-fv="대기">대기</span><span class="fchip" data-fk="status" data-fv="완료">완료</span>
+      <span style="width:1px;height:20px;background:var(--line);margin:0 4px"></span>
+      <input class="t" id="site-search" placeholder="🔍 발전소명 검색" oninput="onSearch(this.value)" autocomplete="off" style="max-width:220px;width:auto;padding:6px 10px;font-size:13px">
+      <span class="muted" id="search-count" style="font-size:11.5px"></span>
       <span style="flex:1"></span>
       <button class="btn primary sm" onclick="openSite()">+ 현장 추가</button>
     </div>
@@ -439,7 +442,7 @@ let sb=null; if(MODE==='cloud') sb=window.supabase.createClient(window.SUPABASE_
 
 /* 현재 데이터 (전역) */
 let sites=[], presets=[], logs=[], settings={auto:false,type:'auto',id:'',key:'',sender:''}, profiles=[], me=null;
-let filter={status:'all',type:'all'}, activeMod='overview', activeSub='shome';
+let filter={status:'all',type:'all'}, searchQ='', activeMod='overview', activeSub='shome';
 const LS={ sites:'const_sites_v3', presets:'const_presets_v3', logs:'const_logs_v3', settings:'const_settings_v3', marks:'const_marks_v3' };
 let marks={};
 
@@ -681,7 +684,8 @@ function gotoSafety(sub){ document.querySelector('#mods button[data-mod="safety"
 
 /* ════════════ 현황 개요 ════════════ */
 document.querySelectorAll('#filters .fchip').forEach(c=>{ c.onclick=()=>{ filter[c.dataset.fk]=c.dataset.fv; document.querySelectorAll(`#filters .fchip[data-fk="${c.dataset.fk}"]`).forEach(x=>x.classList.toggle('on',x===c)); renderCards(); }; });
-function visibleSites(){ return sites.filter(s=>(filter.status==='all'||s.status===filter.status)&&(filter.type==='all'||s.type===filter.type)); }
+function visibleSites(){ const q=searchQ.trim().toLowerCase(); return sites.filter(s=>(filter.status==='all'||s.status===filter.status)&&(filter.type==='all'||s.type===filter.type)&&(!q||(s.name||'').toLowerCase().includes(q))); }
+function onSearch(v){ searchQ=v||''; const q=searchQ.trim(), el=document.getElementById('search-count'); if(el) el.textContent=q?`검색 “${q}” · ${visibleSites().length}건`:''; renderCards(); }
 function renderOverview(){
   document.getElementById('k-total').innerHTML=sites.length+'<small>곳</small>';
   document.getElementById('k-cap').innerHTML=sites.reduce((a,s)=>a+(+s.cap||0),0).toLocaleString()+'<small>kW</small>';
