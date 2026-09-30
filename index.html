@@ -211,6 +211,7 @@
   <button data-mod="safety">🦺 현장 작업자 안전관리</button>
   <button data-mod="issues">🚩 이슈·점검 <span class="badge" id="b-issues" style="background:var(--line2);border-radius:20px;padding:1px 7px;font-size:11px">0</span></button>
   <button data-mod="photos">📸 시공 사진</button>
+  <button data-mod="devreqs">💬 개발 요청 <span class="badge" id="b-devreqs" style="background:var(--line2);border-radius:20px;padding:1px 7px;font-size:11px">0</span></button>
   <button data-mod="members" id="mod-members" style="display:none">👥 계정관리</button>
   <button data-mod="audit" id="mod-audit" style="display:none">🧾 로그</button>
   <button data-mod="verify" id="mod-verify" style="display:none">📋 공문 검증</button>
@@ -280,6 +281,25 @@
       <span class="muted" id="photo-hint" style="font-size:11.5px"></span>
     </div>
     <div id="photo-grid" class="sgrid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+  </section>
+
+  <!-- 개발 요청 게시판 -->
+  <section class="view" id="v-devreqs">
+    <h2 class="title">개발 요청 게시판</h2>
+    <p class="desc">대시보드에 추가·수정하고 싶은 기능이나 오류를 자유롭게 남겨주세요. 접수된 요청은 검토 후 이 곳에서 처리 결과를 답변드립니다.</p>
+    <div class="kpis">
+      <div class="kpi"><span class="ico">📬</span><div class="n" id="dk-open">0<small>건</small></div><div class="l">접수(미답변)</div></div>
+      <div class="kpi"><span class="ico">🔧</span><div class="n" id="dk-prog">0<small>건</small></div><div class="l">검토중</div></div>
+      <div class="kpi"><span class="ico">✅</span><div class="n" id="dk-done">0<small>건</small></div><div class="l">처리완료</div></div>
+      <div class="kpi"><span class="ico">🗂</span><div class="n" id="dk-total">0<small>건</small></div><div class="l">전체 요청</div></div>
+    </div>
+    <div class="filters" id="dr-filters">
+      <span class="muted" style="font-size:12px;font-weight:700">상태</span>
+      <span class="fchip on" data-dfv="all">전체</span><span class="fchip" data-dfv="접수">접수</span><span class="fchip" data-dfv="검토중">검토중</span><span class="fchip" data-dfv="완료">완료</span><span class="fchip" data-dfv="보류">보류</span>
+      <span style="flex:1"></span>
+      <button class="btn primary sm" onclick="openDevreq()">+ 새 요청 작성</button>
+    </div>
+    <div id="devreq-list"></div>
   </section>
 
   <!-- 계정 관리 (관리자 전용) -->
@@ -460,6 +480,27 @@
   <div class="mf"><button class="btn danger" id="p-delete" onclick="deletePreset()" style="margin-right:auto;display:none">삭제</button><button class="btn" onclick="closeModal('preset-modal')">취소</button><button class="btn primary" onclick="savePreset()">저장</button></div>
 </div></div>
 
+<!-- 개발 요청 작성 -->
+<div class="overlay" id="devreq-modal" style="z-index:120"><div class="modal">
+  <div class="mh"><h3>새 개발 요청</h3><button class="x" onclick="closeModal('devreq-modal')">×</button></div>
+  <div class="mb">
+    <div class="row">
+      <div class="col field"><label class="f">분류</label><select class="t" id="dr-cat"><option>기능요청</option><option>버그</option><option>개선</option><option>기타</option></select></div>
+      <div class="col field"><label class="f">작성자</label><input class="t" id="dr-author" placeholder="이름"></div>
+    </div>
+    <div class="field"><label class="f">제목</label><input class="t" id="dr-title" placeholder="예) 현장 목록에 준공 예정일 컬럼 추가"></div>
+    <div class="field"><label class="f">요청 내용</label><textarea class="t" id="dr-body" style="min-height:130px" placeholder="원하시는 기능·수정 내용과 이유, 가능하면 예시를 구체적으로 적어주세요."></textarea></div>
+  </div>
+  <div class="mf"><button class="btn" onclick="closeModal('devreq-modal')">취소</button><button class="btn primary" onclick="submitDevreq()">등록</button></div>
+</div></div>
+
+<!-- 개발 요청 상세·답변 -->
+<div class="overlay" id="devreq-detail" style="z-index:121"><div class="modal">
+  <div class="mh"><h3 id="drd-head">요청 상세</h3><button class="x" onclick="closeModal('devreq-detail')">×</button></div>
+  <div class="mb" id="drd-body"></div>
+  <div class="mf" id="drd-foot"></div>
+</div></div>
+
 <div class="lightbox" id="lightbox" onclick="closeImg()"><img id="lightbox-img" src="" alt=""></div>
 <div id="toast"></div>
 
@@ -476,9 +517,9 @@ const MODE = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) ? 'cloud' : 'loca
 let sb=null; if(MODE==='cloud') sb=window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 /* 현재 데이터 (전역) */
-let sites=[], presets=[], logs=[], settings={auto:false,type:'auto',id:'',key:'',sender:''}, profiles=[], me=null;
+let sites=[], presets=[], logs=[], settings={auto:false,type:'auto',id:'',key:'',sender:''}, profiles=[], me=null, devreqs=[], drFilter='all';
 let filter={status:'all',type:'all',stage:null}, searchQ='', activeMod='overview', activeSub='shome';
-const LS={ sites:'const_sites_v3', presets:'const_presets_v3', logs:'const_logs_v3', settings:'const_settings_v3', marks:'const_marks_v3' };
+const LS={ sites:'const_sites_v3', presets:'const_presets_v3', logs:'const_logs_v3', settings:'const_settings_v3', marks:'const_marks_v3', devreqs:'const_devreqs_v3' };
 let marks={};
 
 /* ── 유틸 ── */
@@ -543,7 +584,14 @@ const DB={
     sites=(S.data||[]).map(r=>({ ...siteFromRow(r), issues:(iB[r.id]||[]).map(issueFromRow), inspections:(nB[r.id]||[]).map(inspFromRow), _ackRows:aB[r.id]||[], media:(mB[r.id]||[]).map(mediaFromRow) }));
     presets=(P.data||[]).map(presetFromRow);
     logs=(L.data||[]).map(l=>({stamp:fmtStamp(l.created_at),category:l.category,title:l.title,name:l.name,site:l.site_name,phone:l.phone,type:l.msg_type,status:l.status}));
+    // 개발 요청 게시판: 테이블 미생성 시에도 앱이 깨지지 않도록 별도·안전 로드
+    try{ const D=await sb.from('sc_devreqs').select('*').order('created_at',{ascending:false}); devreqs=(D.data||[]).map(devreqFromRow); }catch(e){ devreqs=[]; }
   },
+  async saveDevreq(o){ if(MODE==='local'){ if(!o.id){ o.id=uid(); o.created=new Date().toISOString(); devreqs.unshift(o); } else { const i=devreqs.findIndex(x=>x.id===o.id); if(i>=0)devreqs[i]={...devreqs[i],...o}; } persistLocal(); return null; }
+    const row={title:o.title,body:o.body,category:o.category,author:o.author,status:o.status,reply:o.reply||null,replied_by:o.repliedBy||null,replied_at:o.repliedAt||null,updated_at:new Date().toISOString()};
+    let res; if(o.id){ res=await sb.from('sc_devreqs').update(row).eq('id',o.id); } else { row.author_id=me?me.id:null; res=await sb.from('sc_devreqs').insert(row); }
+    return res&&res.error?res.error:null; },
+  async deleteDevreq(id){ if(MODE==='local'){ devreqs=devreqs.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_devreqs').delete().eq('id',id); },
   async saveSite(o){ if(MODE==='local'){ if(!o.id)o.id=uid(); const i=sites.findIndex(x=>x.id===o.id); if(i>=0)sites[i]={...sites[i],...o}; else sites.push({issues:[],inspections:[],acks:[],permits:[],...o}); persistLocal(); return o.id; }
     const row=siteToRow(o); if(o.id){ await sb.from('sc_sites').update(row).eq('id',o.id); return o.id; } const {data}=await sb.from('sc_sites').insert(row).select('id').single(); return data&&data.id; },
   async deleteSite(id){ if(MODE==='local'){ sites=sites.filter(x=>x.id!==id); persistLocal(); return; } await sb.from('sc_sites').delete().eq('id',id); },
@@ -589,9 +637,9 @@ function inspToRow(o){ return {date:o.date||null,inspector:o.inspector,result:o.
 function presetFromRow(r){ return {id:r.id,category:r.category,title:r.title,body:r.body,sched:r.sched||{on:false,freq:'weekday',time:'07:00',weekday:'1'}}; }
 
 /* ── 로컬 저장 ── */
-function persistLocal(){ try{ localStorage.setItem(LS.sites,JSON.stringify(sites)); localStorage.setItem(LS.presets,JSON.stringify(presets)); localStorage.setItem(LS.logs,JSON.stringify(logs)); localStorage.setItem(LS.settings,JSON.stringify(settings)); localStorage.setItem(LS.marks,JSON.stringify(marks)); }catch(e){ toast('저장 공간 부족: 사진 수를 줄여주세요.'); } }
+function persistLocal(){ try{ localStorage.setItem(LS.sites,JSON.stringify(sites)); localStorage.setItem(LS.presets,JSON.stringify(presets)); localStorage.setItem(LS.logs,JSON.stringify(logs)); localStorage.setItem(LS.settings,JSON.stringify(settings)); localStorage.setItem(LS.marks,JSON.stringify(marks)); localStorage.setItem(LS.devreqs,JSON.stringify(devreqs)); }catch(e){ toast('저장 공간 부족: 사진 수를 줄여주세요.'); } }
 function loadLocal(){ const g=(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k))??d; }catch(e){ return d; } };
-  sites=g(LS.sites,null); presets=g(LS.presets,null); logs=g(LS.logs,[]); settings=g(LS.settings,{auto:false,type:'auto',id:'',key:'',sender:''}); marks=g(LS.marks,{});
+  sites=g(LS.sites,null); presets=g(LS.presets,null); logs=g(LS.logs,[]); settings=g(LS.settings,{auto:false,type:'auto',id:'',key:'',sender:''}); marks=g(LS.marks,{}); devreqs=g(LS.devreqs,[]);
   if(!sites||!presets){ seedLocal(); } (sites||[]).forEach(normalizeSite); profiles=[]; }
 function seedLocal(){
   const P=(a)=>STAGES.map(n=>({name:n,date:(a[n]||''),status:a[n]?'완료':'예정'}));
@@ -700,7 +748,7 @@ let rtTimer=null;
 function subscribeRealtime(){
   if(MODE!=='cloud') return;
   const ch=sb.channel('rt-sc');
-  ['sc_sites','sc_issues','sc_inspections','sc_acks','sc_presets','sc_send_logs','sc_media'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },700); }));
+  ['sc_sites','sc_issues','sc_inspections','sc_acks','sc_presets','sc_send_logs','sc_media','sc_devreqs'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{ clearTimeout(rtTimer); rtTimer=setTimeout(async()=>{ await DB.loadAll(); rerender(); },700); }));
   ch.subscribe();
 }
 async function reload(){ await DB.loadAll(); }
@@ -708,6 +756,7 @@ function rerender(){
   renderConn(); refreshBadges();
   if(activeMod==='overview') renderOverview();
   else if(activeMod==='issues') renderIssues();
+  else if(activeMod==='devreqs') renderDevreqs();
   else if(activeMod==='safety'){ if(activeSub==='shome')renderShome(); else if(activeSub==='presets')renderPresets(); else if(activeSub==='send')initSend(); else if(activeSub==='logs')renderLogs(); }
   if(document.getElementById('detail-modal').classList.contains('open')) renderDetail();
 }
@@ -720,6 +769,7 @@ document.querySelectorAll('#mods button').forEach(b=>{ if(b.disabled) return; b.
   else if(activeMod==='safety'){ showSub('shome'); }
   else if(activeMod==='issues'){ showView('v-issues'); renderIssues(); }
   else if(activeMod==='photos'){ showView('v-photos'); renderPhotos(); }
+  else if(activeMod==='devreqs'){ showView('v-devreqs'); renderDevreqs(); }
   else if(activeMod==='members'){ showView('v-members'); renderMembers(); }
   else if(activeMod==='verify'){ showView('v-verify'); initVerify(); }
   else if(activeMod==='audit'){ showView('v-audit'); loadAuditAndRender(); }
@@ -1118,7 +1168,66 @@ async function resetDemo(){ if(MODE!=='local'){ toast('클라우드 모드는 Su
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o)o.classList.remove('open'); }));
-function refreshBadges(){ document.getElementById('b-presets').textContent=presets.length; document.getElementById('b-logs').textContent=logs.length; document.getElementById('b-issues').textContent=sites.reduce((a,s)=>a+(s.issues||[]).filter(i=>i.status!=='처리완료').length,0); }
+function refreshBadges(){ document.getElementById('b-presets').textContent=presets.length; document.getElementById('b-logs').textContent=logs.length; document.getElementById('b-issues').textContent=sites.reduce((a,s)=>a+(s.issues||[]).filter(i=>i.status!=='처리완료').length,0); document.getElementById('b-devreqs').textContent=devreqs.filter(d=>d.status==='접수').length; }
+/* ════════════ 개발 요청 게시판 ════════════ */
+function devreqFromRow(r){ return {id:r.id,title:r.title,body:r.body,category:r.category,author:r.author,authorId:r.author_id,status:r.status||'접수',reply:r.reply,repliedBy:r.replied_by,repliedAt:r.replied_at,created:r.created_at}; }
+function meIsAdmin(){ return MODE==='local' || !!(me&&me.role==='admin'&&me.approved); }
+function drStatusClass(s){ return s==='완료'?'done':s==='검토중'?'during':s==='보류'?'etc':'before'; }
+function drDate(v){ return v?fmtStamp(v):''; }
+
+function openDevreq(){ document.getElementById('dr-cat').value='기능요청'; document.getElementById('dr-author').value=(me&&me.name)||''; document.getElementById('dr-title').value=''; document.getElementById('dr-body').value=''; openModal('devreq-modal'); }
+async function submitDevreq(){ const title=document.getElementById('dr-title').value.trim(); if(!title){ toast('제목을 입력하세요'); return; }
+  const o={title,body:document.getElementById('dr-body').value.trim(),category:document.getElementById('dr-cat').value,author:document.getElementById('dr-author').value.trim()||(me&&me.name)||'익명',status:'접수'};
+  const err=await DB.saveDevreq(o); if(err){ toast('접수에 실패했습니다. 관리자에게 문의해 주세요.'); return; }
+  closeModal('devreq-modal'); audit('create','devreq',title); await DB.loadAll(); renderDevreqs(); refreshBadges(); toast('요청을 접수했습니다',true); }
+
+function openDevreqDetail(id){ const d=devreqs.find(x=>x.id===id); if(!d) return;
+  const admin=meIsAdmin();
+  let h='';
+  h+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span class="pill type">${esc(d.category||'기타')}</span><span class="pill ${drStatusClass(d.status)}">${esc(d.status||'접수')}</span><span class="muted" style="font-size:12px">${esc(d.author||'익명')} · ${drDate(d.created)}</span></div>`;
+  h+=`<h3 style="margin:0 0 10px;font-size:17px">${esc(d.title)}</h3>`;
+  h+=`<div style="white-space:pre-wrap;font-size:13.5px;line-height:1.65">${esc(d.body)||'<span class="muted">내용 없음</span>'}</div>`;
+  h+=`<div class="card pad" style="background:var(--line2);border:none;margin-top:16px">`;
+  h+=`<label class="f" style="margin-bottom:8px">💬 처리 답변</label>`;
+  if(admin){
+    h+=`<div class="field" style="margin-bottom:10px;max-width:200px"><label class="f">상태</label><select class="t" id="drd-status"><option${d.status==='접수'?' selected':''}>접수</option><option${d.status==='검토중'?' selected':''}>검토중</option><option${d.status==='완료'?' selected':''}>완료</option><option${d.status==='보류'?' selected':''}>보류</option></select></div>`;
+    h+=`<textarea class="t" id="drd-reply" style="min-height:90px" placeholder="처리 결과·답변을 작성하세요">${esc(d.reply||'')}</textarea>`;
+  } else if(d.reply){
+    h+=`<div style="white-space:pre-wrap;font-size:13.5px;line-height:1.6">${esc(d.reply)}</div><div class="muted" style="font-size:11.5px;margin-top:8px">— ${esc(d.repliedBy||'관리자')} · ${drDate(d.repliedAt)}</div>`;
+  } else {
+    h+=`<div class="muted" style="font-size:12.5px">아직 답변이 등록되지 않았습니다. 검토 후 답변드리겠습니다.</div>`;
+  }
+  h+=`</div>`;
+  document.getElementById('drd-body').innerHTML=h;
+  let f='';
+  if(admin) f+=`<button class="btn danger" onclick="deleteDevreqAsk('${id}')" style="margin-right:auto">삭제</button>`;
+  f+=`<button class="btn" onclick="closeModal('devreq-detail')">닫기</button>`;
+  if(admin) f+=`<button class="btn primary" onclick="saveDevreqReply('${id}')">답변 저장</button>`;
+  document.getElementById('drd-foot').innerHTML=f;
+  openModal('devreq-detail');
+}
+async function saveDevreqReply(id){ const d=devreqs.find(x=>x.id===id); if(!d) return;
+  const reply=document.getElementById('drd-reply').value.trim(), status=document.getElementById('drd-status').value;
+  const o={id,title:d.title,body:d.body,category:d.category,author:d.author,status,reply,repliedBy:(me&&me.name)||'관리자',repliedAt:new Date().toISOString()};
+  const err=await DB.saveDevreq(o); if(err){ toast('답변 저장에 실패했습니다.'); return; }
+  audit('update','devreq',d.title,'답변/'+status); closeModal('devreq-detail'); await DB.loadAll(); renderDevreqs(); refreshBadges(); toast('답변을 저장했습니다',true); }
+async function deleteDevreqAsk(id){ const d=devreqs.find(x=>x.id===id); if(!d) return; if(!confirm('이 요청을 삭제할까요?')) return; await DB.deleteDevreq(id); audit('delete','devreq',d.title); closeModal('devreq-detail'); await DB.loadAll(); renderDevreqs(); refreshBadges(); toast('삭제했습니다',true); }
+
+function renderDevreqs(){
+  const cnt=s=>devreqs.filter(d=>d.status===s).length;
+  document.getElementById('dk-open').innerHTML=cnt('접수')+'<small>건</small>';
+  document.getElementById('dk-prog').innerHTML=cnt('검토중')+'<small>건</small>';
+  document.getElementById('dk-done').innerHTML=cnt('완료')+'<small>건</small>';
+  document.getElementById('dk-total').innerHTML=devreqs.length+'<small>건</small>';
+  const list=drFilter==='all'?devreqs:devreqs.filter(d=>d.status===drFilter);
+  document.getElementById('devreq-list').innerHTML=list.length?list.map(d=>`<div class="card pad" style="margin-bottom:10px;cursor:pointer" onclick="openDevreqDetail('${d.id}')">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="pill ${drStatusClass(d.status)}">${esc(d.status||'접수')}</span><span class="pill type">${esc(d.category||'기타')}</span><b style="font-size:14.5px">${esc(d.title)}</b><span style="flex:1"></span><span class="muted" style="font-size:11.5px">${esc(d.author||'익명')} · ${drDate(d.created)}</span></div>
+    ${d.body?`<div class="muted" style="font-size:12.5px;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.body).slice(0,120)}</div>`:''}
+    <div style="font-size:12px;margin-top:6px;font-weight:600;color:${d.reply?'var(--green)':'var(--sub)'}">${d.reply?'✅ 답변 완료 — 클릭해 확인':'⏳ 답변 대기'}</div>
+  </div>`).join(''):'<div class="empty" style="padding:40px;text-align:center;color:var(--sub)">아직 등록된 요청이 없습니다. 우측 상단 <b>[+ 새 요청 작성]</b>으로 남겨주세요.</div>';
+}
+document.querySelectorAll('#dr-filters .fchip').forEach(c=>{ c.onclick=()=>{ drFilter=c.dataset.dfv; document.querySelectorAll('#dr-filters .fchip').forEach(x=>x.classList.toggle('on',x===c)); renderDevreqs(); }; });
+
 function renderAll(){ renderConn(); renderOverview(); refreshBadges(); }
 
 boot();
