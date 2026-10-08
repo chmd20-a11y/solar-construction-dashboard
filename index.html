@@ -426,7 +426,7 @@
     <div class="row"><div class="col field" style="flex:2"><label class="f">현장명</label><input class="t" id="s-name" placeholder="예) 김포 물류창고 지붕태양광"></div><div class="col field"><label class="f">사업주 성명</label><input class="t" id="s-owner" placeholder="(주)○○물류 / 홍길동"></div></div>
     <div class="row"><div class="col field"><label class="f">설치형태</label><select class="t" id="s-type"><option>토지</option><option>건물</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div></div>
     <div class="row"><div class="col field"><label class="f">위치/주소</label><input class="t" id="s-loc" placeholder="경기 김포시 ..."></div><div class="col field"><label class="f">사업자번호</label><input class="t" id="s-bizno" placeholder="123-45-67890"></div></div>
-    <div class="row"><div class="col field"><label class="f">현장소장명 / 연락처 <span class="muted" style="font-weight:500">(문자 대상)</span></label><input class="t" id="s-contact" placeholder="예) 김윤구 010-2748-7980"><div class="muted" style="font-size:11px;margin-top:4px">이름과 전화번호를 함께 입력하세요. 전화번호는 자동 인식되어 문자 발송에 사용됩니다.</div></div></div>
+    <div class="row"><div class="col field"><label class="f">현장소장명</label><input class="t" id="s-mname" placeholder="예) 김윤구"></div><div class="col field"><label class="f">문자대상 연락처</label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">예비1</label><input class="t" id="s-cname"></div><div class="col field"><label class="f">예비2</label><input class="t" id="s-cphone"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">시공업체</label><input class="t" id="s-builder"></div><div class="col field"><label class="f">토목업체</label><input class="t" id="s-civil"></div></div>
@@ -930,7 +930,7 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
   document.getElementById('s-id').value=s?s.id:'';
   const set=(id2,val)=>document.getElementById(id2).value=val;
   set('s-name',s?s.name:''); set('s-owner',s?(s.owner||''):''); set('s-type',s?s.type:'토지'); set('s-cap',s?s.cap:''); set('s-loc',s?(s.loc||''):''); set('s-bizno',s?(s.bizno||''):'');
-  set('s-contact',s?[s.mname||'',s.mphone||''].filter(Boolean).join(' '):''); set('s-cname',s?(s.cname||''):''); set('s-cphone',s?(s.cphone||''):'');
+  set('s-mname',s?(s.mname||''):''); set('s-mphone',s?(s.mphone||''):''); set('s-cname',s?(s.cname||''):''); set('s-cphone',s?(s.cphone||''):'');
   set('s-mmodel',s?(s.moduleModel||''):''); set('s-mqty',s?(s.moduleQty||''):''); set('s-imodel',s?(s.inverterModel||''):''); set('s-iqty',s?(s.inverterQty||''):'');
   set('s-builder',s?(s.builder||''):''); set('s-civil',s?(s.civil||''):''); set('s-start',s?(s.start||''):''); set('s-due',s?(s.due||''):'');
   set('s-stage',s?s.stage:0); set('s-progress',s?s.progress:0); set('s-status',s?s.status:'토지'); set('s-note',s?(s.note||''):'');
@@ -939,10 +939,8 @@ function openSite(id){ fillStageSelect(); const s=id?getSite(id):null;
 async function saveSite(){
   const g=id=>document.getElementById(id).value; const name=g('s-name').trim(); if(!name){ toast('현장명을 입력하세요'); return; }
   const sid=g('s-id'); const prev=sid?getSite(sid):null;
-  const _raw=g('s-contact').trim(); const _pm=_raw.match(/0\d{1,2}[-\s.]?\d{3,4}[-\s.]?\d{4}/);
-  const _phone=_pm?_pm[0].replace(/\s/g,''):''; const _mname=(_pm?_raw.replace(_pm[0],''):_raw).replace(/^[\s/·,|–-]+/,'').replace(/[\s/·,|–-]+$/,'').trim();
   const o={ id:sid||undefined, name, owner:g('s-owner').trim(), type:g('s-type'), cap:+g('s-cap')||0, loc:g('s-loc').trim(), bizno:g('s-bizno').trim(),
-    mname:_mname, mphone:_phone, cname:g('s-cname').trim(), cphone:g('s-cphone').trim(),
+    mname:g('s-mname').trim(), mphone:g('s-mphone').trim(), cname:g('s-cname').trim(), cphone:g('s-cphone').trim(),
     moduleModel:g('s-mmodel').trim(), moduleQty:+g('s-mqty')||0, inverterModel:g('s-imodel').trim(), inverterQty:+g('s-iqty')||0,
     builder:g('s-builder').trim(), civil:g('s-civil').trim(), start:g('s-start'), due:g('s-due'),
     stage:+g('s-stage'), progress:Math.min(100,Math.max(0,+g('s-progress')||0)), status:g('s-status'), note:g('s-note').trim(),
