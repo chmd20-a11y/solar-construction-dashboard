@@ -426,8 +426,8 @@
     <div class="row"><div class="col field" style="flex:2"><label class="f">현장명</label><input class="t" id="s-name" placeholder="예) 김포 물류창고 지붕태양광"></div><div class="col field"><label class="f">사업주 성명</label><input class="t" id="s-owner" placeholder="(주)○○물류 / 홍길동"></div></div>
     <div class="row"><div class="col field"><label class="f">설치형태</label><select class="t" id="s-type"><option>토지</option><option>건물</option></select></div><div class="col field"><label class="f">용량(kW)</label><input class="t" id="s-cap" type="number" placeholder="480"></div></div>
     <div class="row"><div class="col field"><label class="f">위치/주소</label><input class="t" id="s-loc" placeholder="경기 김포시 ..."></div><div class="col field"><label class="f">사업자번호</label><input class="t" id="s-bizno" placeholder="123-45-67890"></div></div>
-    <div class="row"><div class="col field"><label class="f">현장소장명</label><input class="t" id="s-mname" placeholder="예) 김윤구"></div><div class="col field"><label class="f">문자대상 연락처</label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
-    <div class="row" style="display:none"><div class="col field"><label class="f">예비1</label><input class="t" id="s-cname"></div><div class="col field"><label class="f">예비2</label><input class="t" id="s-cphone"></div></div>
+    <div class="row"><div class="col field"><label class="f">영업담당자명</label><input class="t" id="s-mname" placeholder="예) 김윤구"></div><div class="col field"><label class="f">영업담당 연락처</label><input class="t" id="s-mphone" placeholder="010-0000-0000"></div></div>
+    <div class="row"><div class="col field"><label class="f">현장소장명</label><input class="t" id="s-cname" placeholder="예) 이현장"></div><div class="col field"><label class="f">현장소장 연락처 <span class="muted" style="font-weight:500">(문자 발송 대상)</span></label><input class="t" id="s-cphone" placeholder="010-0000-0000"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">모듈 모델</label><input class="t" id="s-mmodel"></div><div class="col field" style="flex:.6"><label class="f">모듈 수량</label><input class="t" type="number" id="s-mqty"></div><div class="col field"><label class="f">인버터 모델</label><input class="t" id="s-imodel"></div><div class="col field" style="flex:.6"><label class="f">인버터 수량</label><input class="t" type="number" id="s-iqty"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">시공업체</label><input class="t" id="s-builder"></div><div class="col field"><label class="f">토목업체</label><input class="t" id="s-civil"></div></div>
     <div class="row" style="display:none"><div class="col field"><label class="f">착공일</label><input class="t" id="s-start" type="date"></div><div class="col field"><label class="f">준공 예정일</label><input class="t" id="s-due" type="date"></div></div>
@@ -557,7 +557,7 @@ function normalizeSite(o){
   return o;
 }
 function getSite(id){ return sites.find(x=>x.id===id); }
-function fill(body,site){ return (body||'').replace(/\{\{현장명\}\}/g,site?.name||'(현장)').replace(/\{\{소장명\}\}/g,site?.mname||'(소장)').replace(/\{\{담당자명\}\}/g,site?.cname||'(담당자)').replace(/\{\{날짜\}\}/g,todayStr()).replace(/\{\{시간\}\}/g,nowTime()); }
+function fill(body,site){ return (body||'').replace(/\{\{현장명\}\}/g,site?.name||'(현장)').replace(/\{\{소장명\}\}/g,site?.cname||'(소장)').replace(/\{\{담당자명\}\}/g,site?.mname||'(담당자)').replace(/\{\{날짜\}\}/g,todayStr()).replace(/\{\{시간\}\}/g,nowTime()); }
 function copyVar(v){ copyText(v); toast('복사됨: '+v,true); }
 function copyText(t){ if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(t).catch(()=>fbCopy(t)); } else fbCopy(t); }
 function fbCopy(t){ const a=document.createElement('textarea'); a.value=t; a.style.position='fixed'; a.style.opacity='0'; document.body.appendChild(a); a.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(a); }
@@ -849,8 +849,10 @@ function renderDetailProcess(s){
       <tr><th>사업주</th><td>${esc(s.owner)||'—'}</td></tr>
       <tr><th>설치형태</th><td>${esc(s.type)||'—'}</td></tr>
       <tr><th>용량</th><td>${(+s.cap||0).toLocaleString()} kW</td></tr>
-      <tr><th>영업/담당</th><td>${esc(s.mname)||'—'}</td></tr>
-      <tr><th>연락처</th><td>${esc(s.mphone)||'—'}</td></tr>
+      <tr><th>영업담당자</th><td>${esc(s.mname)||'—'}</td></tr>
+      <tr><th>영업담당 연락처</th><td>${esc(s.mphone)||'—'}</td></tr>
+      <tr><th>현장소장</th><td>${esc(s.cname)||'—'}</td></tr>
+      <tr><th>현장소장 연락처</th><td>${esc(s.cphone)||'—'}</td></tr>
       ${s.bizno?`<tr><th>사업자번호</th><td>${esc(s.bizno)}</td></tr>`:''}
       <tr><th>진행사항</th><td style="white-space:pre-wrap">${esc(s.note)||'—'}</td></tr>
     </table>
@@ -1103,13 +1105,13 @@ async function deletePreset(){ const pid=document.getElementById('p-id').value; 
 
 function initSend(){ document.getElementById('send-mode-tag').className='pill '+(isConnected()?'ok':'etc'); document.getElementById('send-mode-tag').textContent=isConnected()?'문자나라 연동됨':'연동 전 · 시뮬레이션';
   document.getElementById('send-preset').innerHTML=presets.map(p=>`<option value="${p.id}">[${p.category}] ${esc(p.title)}</option>`).join('');
-  document.getElementById('send-sites').innerHTML=sites.map(s=>`<label class="checkline"><input type="checkbox" class="send-site" value="${s.id}" onchange="renderSendPreview()" checked><span><b>${esc(s.name)}</b> · ${esc(s.mname)} 소장 ${s.mphone?'':'<span class="pill warn" style="margin-left:4px">번호없음</span>'}</span></label>`).join(''); renderSendPreview(); }
+  document.getElementById('send-sites').innerHTML=sites.map(s=>`<label class="checkline"><input type="checkbox" class="send-site" value="${s.id}" onchange="renderSendPreview()" checked><span><b>${esc(s.name)}</b> · ${s.cname?esc(s.cname)+' 소장':'<span class="muted">현장소장 미지정</span>'} ${s.cphone?'':'<span class="pill warn" style="margin-left:4px">번호없음</span>'}</span></label>`).join(''); renderSendPreview(); }
 function selectAllSites(v){ document.querySelectorAll('.send-site').forEach(c=>c.checked=v); renderSendPreview(); }
 function selectedSites(){ return [...document.querySelectorAll('.send-site:checked')].map(c=>getSite(c.value)); }
 function renderSendPreview(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value), chosen=selectedSites(), box=document.getElementById('send-preview');
   document.getElementById('send-count').textContent=chosen.length?`· ${chosen.length}건`:''; document.getElementById('btn-sendall').disabled=!(p&&chosen.length);
   if(!p||!chosen.length){ box.innerHTML='<div class="empty">프리셋과 대상을 선택하세요.</div>'; return; }
-  box.innerHTML=chosen.map(s=>{ const msg=fill(p.body,s),type=msgType(msg),no=!s.mphone; return `<div class="preset" style="max-height:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><b>📍 ${esc(s.name)} · ${esc(s.mname)} 소장</b><span><span class="pill ${type==='SMS'?'sms':'lms'}">${type} · ${byteLen(msg)}byte</span> <span class="pill ${catClass(p.category)}">${p.category}</span></span></div><div class="body" style="max-height:none">${esc(msg)}</div><div class="foot"><span class="pill ${no?'warn':'etc'}">📱 ${no?'번호없음':esc(s.mphone)}</span><button class="btn sm" onclick="copyOne('${p.id}','${s.id}')">📋 복사</button><button class="btn sm green" onclick="sendOne('${p.id}','${s.id}')" ${no?'disabled':''}>📩 문자 발송</button></div></div>`; }).join(''); }
+  box.innerHTML=chosen.map(s=>{ const msg=fill(p.body,s),type=msgType(msg),no=!s.cphone; return `<div class="preset" style="max-height:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><b>📍 ${esc(s.name)}${s.cname?' · '+esc(s.cname)+' 소장':''}</b><span><span class="pill ${type==='SMS'?'sms':'lms'}">${type} · ${byteLen(msg)}byte</span> <span class="pill ${catClass(p.category)}">${p.category}</span></span></div><div class="body" style="max-height:none">${esc(msg)}</div><div class="foot"><span class="pill ${no?'warn':'etc'}">📱 ${no?'번호없음':esc(s.cphone)}</span><button class="btn sm" onclick="copyOne('${p.id}','${s.id}')">📋 복사</button><button class="btn sm green" onclick="sendOne('${p.id}','${s.id}')" ${no?'disabled':''}>📩 문자 발송</button></div></div>`; }).join(''); }
 function copyOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); copyText(fill(p.body,s)); toast('문구를 복사했습니다',true); }
 async function sendViaRelay(receiver,message,receiverName){
   try{
@@ -1124,14 +1126,14 @@ async function sendViaRelay(receiver,message,receiverName){
     return j; // {ok, code, codeText, ...}
   }catch(e){ return {ok:false,error:'중계서버 연결 실패'}; }
 }
-async function doSend(p,s,auto){ const phone=(s.mphone||'').trim(),text=fill(p.body,s),type=msgType(text);
-  if(!phone){ if(!auto)toast('⚠ '+s.mname+' 소장 번호가 없습니다'); await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone:'—',type,status:'실패(번호없음)'}); return false; }
+async function doSend(p,s,auto){ const phone=(s.cphone||'').trim(),text=fill(p.body,s),type=msgType(text);
+  if(!phone){ if(!auto)toast('⚠ '+(s.cname||s.name)+' 현장소장 연락처가 없습니다'); await DB.addLog({category:p.category,title:p.title,name:(s.cname||'')+' 소장',site:s.name,phone:'—',type,status:'실패(번호없음)'}); return false; }
   let status, ok=true;
-  if(isConnected()&&MODE==='cloud'){ const r=await sendViaRelay(phone,text,(s.mname||'')+' 소장'); ok=!!r.ok; status=(auto?'자동 ':'')+(r.ok?'발송 성공':'실패('+(r.error||r.codeText||'오류')+')'); }
+  if(isConnected()&&MODE==='cloud'){ const r=await sendViaRelay(phone,text,(s.cname||'')+' 소장'); ok=!!r.ok; status=(auto?'자동 ':'')+(r.ok?'발송 성공':'실패('+(r.error||r.codeText||'오류')+')'); }
   else { status=(auto?'자동 ':'')+'발송(시뮬)'; }
-  await DB.addLog({category:p.category,title:p.title,name:s.mname+' 소장',site:s.name,phone,type,status});
+  await DB.addLog({category:p.category,title:p.title,name:(s.cname||'')+' 소장',site:s.name,phone,type,status});
   return ok; }
-async function sendOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); if(await doSend(p,s,false)){ audit('send','message',p.title+' → '+s.name); await reload(); if(activeSub==='logs')renderLogs(); renderShome(); toast(`${s.mname} 소장에게 문자 발송${isConnected()?'':'(시뮬)'} 완료`,true); } }
+async function sendOne(pid,sid){ const p=presets.find(x=>x.id===pid),s=getSite(sid); if(await doSend(p,s,false)){ audit('send','message',p.title+' → '+s.name); await reload(); if(activeSub==='logs')renderLogs(); renderShome(); toast(`${s.cname||'현장소장'} 소장에게 문자 발송${isConnected()?'':'(시뮬)'} 완료`,true); } }
 async function sendAll(){ const p=presets.find(x=>x.id===document.getElementById('send-preset').value); let ok=0,f=0; for(const s of selectedSites()){ (await doSend(p,s,false))?ok++:f++; } audit('send','message',p.title+' (전체 '+ok+'건)'); await reload(); renderShome(); toast(`발송 완료 — 성공 ${ok}건${f?`, 번호없음 ${f}건`:''}`,true); }
 function quickSend(pid){ gotoSafety('send'); setTimeout(()=>{ document.getElementById('send-preset').value=pid; renderSendPreview(); },80); }
 function quickSafety(sid){ gotoSafety('send'); setTimeout(()=>{ document.querySelectorAll('.send-site').forEach(c=>c.checked=(c.value===sid)); renderSendPreview(); },80); }
